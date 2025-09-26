@@ -7,3 +7,6 @@
 2025-09-26 19:39:45,329 - termnet.autopilot - INFO - Starting autopilot execution for goal: test
 2025-09-26 19:39:45,330 - termnet.autopilot - INFO - Analyzing repository structure and content
 2025-09-26 19:40:12,446 - termnet.autopilot - INFO - Created plan with 3 tasks
+2025-09-26 19:42:58,638 - termnet.autopilot - INFO - Starting autopilot execution for goal: Hello TermNet! Please introduce yourself and tell me your capabilities
+2025-09-26 19:42:58,638 - termnet.autopilot - INFO - Analyzing repository structure and content
+2025-09-26 19:43:26,576 - termnet.autopilot - INFO - Created plan with 2 tasks
