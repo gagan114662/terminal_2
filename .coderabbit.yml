@@ -1,0 +1,38 @@
+# Minimal CodeRabbit config for TermNet
+version: 1
+
+review:
+  # Keep reviews focused; you can widen later
+  categories:
+    - security
+    - performance
+    - maintainability
+    - complexity
+  inline_suggestions: true
+  summary_level: concise
+
+fail_on:
+  security: high
+  performance: medium
+  maintainability: low
+  complexity: medium
+
+paths:
+  include:
+    - "termnet/**"
+    - "tests/**"
+    - "*.py"
+  exclude:
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+    - "artifacts/**"
+
+# Keep noise low on generated files and large blobs
+limits:
+  max_files_per_review: 50
+  max_file_size_kb: 512
+
+comments:
+  style: actionable
+  require_reproduction: false
+  require_fix_example: true

@@ -100,9 +100,9 @@ class TestToolLoader:
         mock_module.not_a_tool = "string"
         mock_module.__dict__ = {"TestTool": mock_class, "not_a_tool": "string"}
 
-        with patch("inspect.isclass", side_effect=lambda x: x == mock_class):
+        with patch("inspect.isclass", side_effect=lambda x: x is mock_class):
             tool_class = tool_loader._find_tool_class_in_module(mock_module, "test")
-            assert tool_class == mock_class
+            assert tool_class is mock_class
 
     def test_find_tool_class_not_found(self, tool_loader):
         mock_module = MagicMock()
