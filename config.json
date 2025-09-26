@@ -1,0 +1,188 @@
+{
+  "model_config": {
+    "model": "claude-3.5-sonnet",
+    "temperature": 0.3,
+    "top_p": 0.95,
+    "max_output_tokens": 4096,
+    "reasoning_tokens_budget": 8192
+  },
+
+  "timeout_config": {
+    "per_call_timeout_ms": 30000,
+    "tool_timeout_ms": 15000,
+    "session_timeout_ms": 600000
+  },
+
+  "retry_limits": {
+    "max_retries": 3,
+    "retry_backoff_ms": 1000,
+    "global_qps_limit": 2,
+    "concurrency_limit": 1,
+    "daily_token_budget": 500000
+  },
+
+  "context_config": {
+    "context_include_globs": [
+      "src/**",
+      "apps/**",
+      "packages/**",
+      "TermNet/**",
+      "*.py",
+      "*.js",
+      "*.ts",
+      "*.jsx",
+      "*.tsx"
+    ],
+    "context_exclude_globs": [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      ".git/**",
+      "**/*.bin",
+      "**/*.pyc",
+      "**/__pycache__/**",
+      "**/.env*",
+      "**/*.log",
+      "**/*.cache"
+    ],
+    "max_context_files": 100,
+    "max_file_size_kb": 512,
+    "embedding_index_enabled": true,
+    "embedding_index_size": 10000
+  },
+
+  "write_guardrails": {
+    "write_allowlist_paths": [
+      "src/**",
+      "apps/**",
+      "packages/**",
+      "TermNet/**",
+      "tests/**",
+      "*.py",
+      "*.js",
+      "*.ts",
+      "*.jsx",
+      "*.tsx",
+      "*.json",
+      "*.yaml",
+      "*.yml",
+      "*.md"
+    ],
+    "write_blocklist_paths": [
+      "~/**",
+      "/etc/**",
+      "/usr/**",
+      "/bin/**",
+      "/sbin/**",
+      "/System/**",
+      "/Library/**",
+      "**/.ssh/**",
+      "**/.aws/**",
+      "**/.config/**",
+      "**/secrets/**",
+      "**/*.key",
+      "**/*.pem",
+      "**/*.p12",
+      "**/*.pfx"
+    ],
+    "max_files_per_change": 20,
+    "max_total_patch_bytes": 1048576,
+    "dry_run": true,
+    "require_safe_mode": true
+  },
+
+  "git_pr_policy": {
+    "branch_prefix": "feature/",
+    "commit_style": "conventional",
+    "max_lines_per_commit": 500,
+    "squash_commits": false,
+    "pr_autocreate": false,
+    "pr_title_template": "[{type}] {description}",
+    "pr_body_template": "## Summary\\n{summary}\\n\\n## Changes\\n{changes}\\n\\n## Testing\\n{testing}\\n\\n---\\n🤖 Generated with Claude Code",
+    "required_status_checks": [
+      "unit-tests",
+      "lint",
+      "type-check",
+      "security-scan"
+    ],
+    "auto_request_reviewers": []
+  },
+
+  "review_checks": {
+    "coderabbit_ci_required": false,
+    "coderabbit_fail_on": {
+      "security": "high",
+      "style": "off",
+      "complexity": "medium",
+      "performance": "medium",
+      "maintainability": "low"
+    },
+    "block_merge_on_review_fail": true,
+    "require_approval_count": 1
+  },
+
+  "safety_config": {
+    "allowed_tools": [
+      "terminal.execute_safe",
+      "file.read",
+      "file.write_safe",
+      "search.grep",
+      "search.glob",
+      "browser_search.offline",
+      "git.status",
+      "git.diff",
+      "git.log"
+    ],
+    "blocked_commands": [
+      "rm -rf",
+      "rm -r",
+      "chmod 777",
+      "chmod -R",
+      "chown",
+      "sudo",
+      "su",
+      "curl",
+      "wget",
+      "npm publish",
+      "pip upload",
+      "cargo publish",
+      "docker push",
+      "kubectl delete",
+      "terraform destroy",
+      "aws s3 rm",
+      "gcloud compute instances delete"
+    ],
+    "secrets_redaction": "on",
+    "secrets_patterns": [
+      "(?i)(api[_-]?key|apikey)[\\s]*[:=][\\s]*['\"]?([\\w\\-]+)",
+      "(?i)(secret|token|password|passwd|pwd)[\\s]*[:=][\\s]*['\"]?([\\w\\-_]+)",
+      "(?i)\"(password|secret|token)[^\"]*\"[\\s]*:[\\s]*\"([^\"]+)\"",
+      "(?i)bearer[\\s]+([\\w\\.\\-]+)",
+      "(?i)(aws[_-]?access[_-]?key[_-]?id|aws[_-]?secret[_-]?access[_-]?key)[\\s]*[:=][\\s]*['\"]?([\\w\\-/+]+)",
+      "(?i)(github[_-]?token|gh[_-]?token)[\\s]*[:=][\\s]*['\"]?([\\w\\-]+)",
+      "sk-[a-zA-Z0-9]{24,}",
+      "ghp_[a-zA-Z0-9]{20,}",
+      "ghs_[a-zA-Z0-9]{20,}",
+      "github_pat_[a-zA-Z0-9_]{10,}",
+      "[A-Za-z0-9+/]{20,}[A-Za-z0-9+/=]{0,4}"
+    ],
+    "network_egress_policy": "deny_all",
+    "allowed_domains": [
+      "localhost",
+      "127.0.0.1",
+      "github.com",
+      "api.github.com"
+    ]
+  },
+
+  "tracing_artifacts": {
+    "trace_enabled": true,
+    "trace_sample_rate": 1.0,
+    "artifacts_dir": "artifacts/last_run",
+    "store_diffs": true,
+    "store_trajectory": true,
+    "log_level": "info",
+    "metrics_collection": true,
+    "performance_monitoring": true
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "USE_CLAUDE_CODE": true,
+  "USE_CLAUDE": false,
+  "USE_OPENROUTER": false,
+  "CLAUDE_CLI_PATH": "/Users/gagan/.nvm/versions/node/v22.19.0/bin/claude",
+  "CLAUDE_CODE_OAUTH_TOKEN": "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",
+  "CLAUDE_BASE_URL": "https://api.anthropic.com",
+  "OPENROUTER_API_KEY": "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",
+  "OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
+  "OLLAMA_URL": "http://127.0.0.1:11434",
+  "MODEL_NAME": "claude-3-5-sonnet",
+  "CLAUDE_MODEL": "",
+  "LLM_TEMPERATURE": 0.7,
+  "MAX_AI_STEPS": 20,
+  "COMMAND_TIMEOUT": 60,
+  "MAX_OUTPUT_LENGTH": 4000,
+  "MEMORY_WINDOW": 12,
+  "MEMORY_SUMMARY_LIMIT": 1000,
+  "CACHE_TTL_SEC": 60,
+  "STREAM_CHUNK_DELAY": 0
+}

@@ -1,0 +1,23 @@
+# Default config - hardcoded to avoid file operations issues
+CONFIG = {
+    "USE_CLAUDE_CODE": False,
+    "USE_CLAUDE": False,
+    "USE_OPENROUTER": False,
+    "CLAUDE_CLI_PATH": "",
+    "CLAUDE_CODE_OAUTH_TOKEN": "",
+    "CLAUDE_BASE_URL": "https://api.anthropic.com",
+    "OPENROUTER_API_KEY": "",
+    "OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
+    "OLLAMA_URL": "http://127.0.0.1:11434",
+    "MODEL_NAME": "claude-3-5-sonnet",
+    "CLAUDE_MODEL": "",
+    "LLM_TEMPERATURE": 0.7,
+    "MAX_AI_STEPS": 20,
+    "COMMAND_TIMEOUT": 60,
+    "MAX_OUTPUT_LENGTH": 4000,
+    "MEMORY_WINDOW": 12,
+    "MEMORY_SUMMARY_LIMIT": 1000,
+    "CACHE_TTL_SEC": 60,
+    "STREAM_CHUNK_DELAY": 0,
+    "CONVERSATION_MEMORY_SIZE": 10,
+}

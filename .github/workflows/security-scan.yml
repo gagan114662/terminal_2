@@ -1,0 +1,150 @@
+name: Security Scan & SBOM Generation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * *'  # Daily security scan
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t termnet-api:${{ github.sha }} .
+          docker tag termnet-api:${{ github.sha }} termnet-api:latest
+
+      - name: Generate SBOM with Syft
+        uses: anchore/syft-action@v0.12.0
+        with:
+          image-ref: termnet-api:${{ github.sha }}
+          artifact-name: sbom.spdx.json
+          output-format: spdx-json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.spdx.json
+
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: termnet-api:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'  # Don't fail the build, just report
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Scan with Grype
+        uses: anchore/grype-action@v0.16.0
+        with:
+          image-ref: termnet-api:${{ github.sha }}
+          fail-build: false
+          output-format: json
+          output-file: grype-report.json
+
+      - name: Upload Grype results
+        uses: actions/upload-artifact@v3
+        with:
+          name: grype-report-${{ github.sha }}
+          path: grype-report.json
+
+      - name: Generate Security Receipt
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+          python3 <<'EOF'
+          import json
+          import hashlib
+          from datetime import datetime
+
+          # Read scan results
+          with open('trivy-results.sarif', 'r') as f:
+              trivy_data = json.load(f)
+
+          with open('grype-report.json', 'r') as f:
+              grype_data = json.load(f)
+
+          # Count vulnerabilities
+          vuln_counts = {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 0, 'LOW': 0}
+          for run in trivy_data.get('runs', []):
+              for result in run.get('results', []):
+                  level = result.get('level', 'note').upper()
+                  if level in vuln_counts:
+                      vuln_counts[level] += 1
+
+          # Create receipt
+          receipt = {
+              'scan_id': '${{ github.sha }}',
+              'timestamp': datetime.utcnow().isoformat(),
+              'image': 'termnet-api:${{ github.sha }}',
+              'vulnerabilities': vuln_counts,
+              'build_url': '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
+              'status': 'PASSED' if vuln_counts['CRITICAL'] == 0 else 'FAILED'
+          }
+
+          with open('security-receipt.json', 'w') as f:
+              json.dump(receipt, f, indent=2)
+
+          print(f"Security scan {'PASSED' if receipt['status'] == 'PASSED' else 'FAILED'}")
+          print(f"Vulnerabilities: {vuln_counts}")
+          EOF
+
+      - name: Upload Security Receipt
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-receipt-${{ github.sha }}
+          path: security-receipt.json
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const receipt = JSON.parse(fs.readFileSync('security-receipt.json', 'utf8'));
+
+            const comment = `## 🔒 Security Scan Results
+
+            **Image:** \`${receipt.image}\`
+            **Status:** ${receipt.status === 'PASSED' ? '✅ PASSED' : '❌ FAILED'}
+
+            ### Vulnerabilities Found:
+            - 🔴 Critical: ${receipt.vulnerabilities.CRITICAL}
+            - 🟠 High: ${receipt.vulnerabilities.HIGH}
+            - 🟡 Medium: ${receipt.vulnerabilities.MEDIUM}
+            - 🟢 Low: ${receipt.vulnerabilities.LOW}
+
+            ### Artifacts:
+            - [SBOM (Software Bill of Materials)](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+            - [Full Security Report](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+
+            *Scan ID: ${receipt.scan_id}*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

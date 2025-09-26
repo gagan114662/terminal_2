@@ -1,0 +1,90 @@
+[
+  {
+    "type": "function",
+    "enabled": true,
+    "function": {
+      "name": "terminal_execute",
+      "description": "Execute a command in the terminal",
+      "module": "terminal",
+      "class": "TerminalSession",
+      "method": "execute_command",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "command": { "type": "string" }
+        },
+        "required": ["command"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "enabled": true,
+    "function": {
+      "name": "browser_search",
+      "description": "Open a Bing search URL in a browser and collect result titles, links, and snippets",
+      "module": "browsersearch",
+      "class": "BrowserSearchTool",
+      "method": "search",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The Bing search URL or any page URL"
+          },
+          "max_results": {
+            "type": "integer",
+            "default": 5
+          }
+        },
+        "required": ["url"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "enabled": false,
+    "function": {
+      "name": "browser_click_and_collect",
+      "description": "Navigate to a given URL in the browser and extract visible text for deeper context",
+      "module": "browsersearch",
+      "class": "BrowserSearchTool",
+      "method": "click_and_collect",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string" },
+          "selector": { "type": "string", "default": "body" }
+        },
+        "required": ["url"]
+      }
+    }
+  },
+  {
+    "type": "other",
+    "enabled": true,
+    "function": {
+      "name": "scratchpad",
+      "description": "A scratchpad/planner tool for the LLM to store, update, and retrieve freeform notes or planning thoughts.",
+      "module": "scratchpad",
+      "class": "Scratchpad",
+      "method": "run",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["write", "read_all", "clear"],
+            "description": "Action to perform: write a note, read all notes, or clear the scratchpad."
+          },
+          "content": {
+            "type": "string",
+            "description": "Content of the note when action is 'write'. Ignored otherwise."
+          }
+        },
+        "required": ["action"]
+      }
+    }
+  }
+]

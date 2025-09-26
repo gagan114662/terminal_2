@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # Main API service
+  termnet-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: termnet-api:latest
+    container_name: termnet-api
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=sqlite:///instance/termnet.db
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+      - VALIDATION_ENABLED=true
+      - SECURITY_SCANNING=true
+    volumes:
+      - ./instance:/app/instance
+      - ./logs:/app/logs
+      - termnet-data:/app/data
+    networks:
+      - termnet-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Security Scanner service (runs periodically)
+  security-scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile.scanner
+    image: termnet-scanner:latest
+    container_name: termnet-scanner
+    environment:
+      - SCAN_INTERVAL=3600  # Scan every hour
+      - DB_PATH=/app/data/termnet_security.db
+      - ENABLE_TRIVY=true
+      - ENABLE_GRYPE=true
+      - ENABLE_SYFT=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - termnet-data:/app/data
+      - ./security/reports:/app/reports
+    networks:
+      - termnet-network
+    depends_on:
+      - termnet-api
+
+  # Validation Engine service
+  validation-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: termnet-api:latest
+    container_name: termnet-validator
+    command: ["python", "-m", "termnet.validation_monitor"]
+    environment:
+      - VALIDATION_MODE=monitor
+      - DB_PATH=/app/data/termnet_validation.db
+      - AUDIT_LEVEL=detailed
+    volumes:
+      - termnet-data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - termnet-network
+    depends_on:
+      - termnet-api
+
+  # PostgreSQL for production (optional, uncomment if needed)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: termnet-db
+  #   environment:
+  #     - POSTGRES_DB=termnet
+  #     - POSTGRES_USER=termnet
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD:-change-in-production}
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - termnet-network
+  #   restart: unless-stopped
+
+  # Redis for caching/sessions (optional)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: termnet-redis
+  #   command: redis-server --appendonly yes
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - termnet-network
+  #   restart: unless-stopped
+
+  # Nginx reverse proxy (optional, for production)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: termnet-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #   networks:
+  #     - termnet-network
+  #   depends_on:
+  #     - termnet-api
+  #   restart: unless-stopped
+
+networks:
+  termnet-network:
+    driver: bridge
+
+volumes:
+  termnet-data:
+  # postgres-data:
+  # redis-data:

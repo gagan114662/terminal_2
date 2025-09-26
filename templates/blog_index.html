@@ -1,0 +1,34 @@
+{% extends "blog_base.html" %}
+
+{% block title %}Home - Simple Blog Platform{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h2>Welcome to Our Blog</h2>
+    <p>Sharing thoughts, ideas, and stories</p>
+</div>
+
+<div class="posts-grid">
+    {% if posts %}
+        {% for post in posts %}
+        <article class="post-card">
+            <h3><a href="{{ url_for('view_post', post_id=post.id) }}">{{ post.title }}</a></h3>
+            <div class="post-meta">
+                <span class="author">By {{ post.author }}</span>
+                <span class="date">{{ post.created_at.strftime('%B %d, %Y') }}</span>
+            </div>
+            <p class="post-excerpt">
+                {{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}
+            </p>
+            <a href="{{ url_for('view_post', post_id=post.id) }}" class="read-more">Read More →</a>
+        </article>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No posts yet!</h3>
+            <p>Be the first to create a post.</p>
+            <a href="{{ url_for('new_post') }}" class="btn btn-primary">Create Your First Post</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
