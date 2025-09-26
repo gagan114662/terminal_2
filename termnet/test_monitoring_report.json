@@ -1,0 +1,78 @@
+{
+  "report_generated": "2025-09-24T18:43:28.378331",
+  "monitoring_stats": {
+    "validations_triggered": 1,
+    "files_monitored": 0,
+    "last_validation": "2025-09-24T18:43:28.371053",
+    "monitoring_since": null,
+    "is_monitoring": false,
+    "monitored_files": 15009,
+    "project_path": "/Users/gagan/Desktop/gagan_projects/terminal_2/TermNet",
+    "validation_rules": 10
+  },
+  "recent_validations": [
+    {
+      "id": 1,
+      "project_name": "TermNet",
+      "project_path": "/Users/gagan/Desktop/gagan_projects/terminal_2/TermNet",
+      "timestamp": "2025-09-24T18:43:28.365326",
+      "total_rules": 8,
+      "passed_rules": 5,
+      "failed_rules": 2,
+      "execution_time": 35.25890493392944,
+      "overall_status": "FAILED"
+    }
+  ],
+  "validation_rules": [
+    {
+      "name": "python_syntax",
+      "description": "Check Python syntax for all .py files",
+      "severity": "critical"
+    },
+    {
+      "name": "requirements_check",
+      "description": "Validate requirements.txt dependencies",
+      "severity": "high"
+    },
+    {
+      "name": "app_startup",
+      "description": "Test application startup",
+      "severity": "high"
+    },
+    {
+      "name": "flask_app",
+      "description": "Validate Flask application structure and imports",
+      "severity": "medium"
+    },
+    {
+      "name": "database_check",
+      "description": "Validate database configurations and imports",
+      "severity": "medium"
+    },
+    {
+      "name": "react_app",
+      "description": "Validate React application structure and dependencies",
+      "severity": "high"
+    },
+    {
+      "name": "docker_validation",
+      "description": "Validate Docker configuration and build capability",
+      "severity": "medium"
+    },
+    {
+      "name": "api_endpoints",
+      "description": "Validate API endpoints and basic responses",
+      "severity": "high"
+    },
+    {
+      "name": "security_check",
+      "description": "Check for common security issues",
+      "severity": "critical"
+    },
+    {
+      "name": "test_coverage",
+      "description": "Validate test coverage and structure",
+      "severity": "medium"
+    }
+  ]
+}
