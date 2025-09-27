@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 # Database configuration
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config["SQLALCHEMY_DATABASE_URI"] = f'sqlite:///{os.path.join(basedir, "users.db")}'
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(basedir, 'users.db')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = "dev-secret-key-change-in-production"
 
@@ -95,7 +95,7 @@ def get_user(user_id):
     try:
         user = User.query.get_or_404(user_id)
         return jsonify({"user": user.to_dict()}), 200
-    except Exception as e:
+    except Exception:
         return jsonify({"error": "User not found"}), 404
 
 

@@ -3,7 +3,6 @@ OpenRouter API client for TermNet integration
 Replaces Ollama with OpenRouter for cloud-based LLM access
 """
 
-import asyncio
 import json
 import time
 from typing import AsyncGenerator, Dict, List, Tuple

@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -153,9 +153,9 @@ class Post(db.Model):
             "status": self.status,
             "view_count": self.view_count,
             "likes_count": self.likes_count,
-            "published_at": self.published_at.isoformat()
-            if self.published_at
-            else None,
+            "published_at": (
+                self.published_at.isoformat() if self.published_at else None
+            ),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "author": self.author.username if self.author else None,
             "category": self.category.name if self.category else None,
@@ -460,7 +460,7 @@ def get_public_settings():
 @app.route("/api/posts/<int:post_id>/comments", methods=["GET"])
 def get_post_comments(post_id):
     """Get comments for a specific post"""
-    post = Post.query.get_or_404(post_id)
+    Post.query.get_or_404(post_id)
     comments = Comment.query.filter_by(
         post_id=post_id, is_approved=True, parent_id=None
     ).all()

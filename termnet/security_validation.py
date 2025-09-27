@@ -10,14 +10,12 @@ import json
 import os
 import sys
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from termnet.validation_engine import (ValidationEngine, ValidationLevel,
-                                       ValidationRule)
+from termnet.validation_engine import ValidationEngine, ValidationLevel, ValidationRule
 
 
 @dataclass
@@ -290,7 +288,7 @@ def main():
     # Integrate with TermNet
     receipt = engine.integrate_with_termnet(sample_report)
 
-    print(f"\n📋 Receipt Summary:")
+    print("\n📋 Receipt Summary:")
     print(f"   Receipt ID: {receipt['receipt_id']}")
     print(f"   Validation Status: {receipt['validation']['status']}")
     print(f"   Signature: {receipt['signature'][:16]}...")

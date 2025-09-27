@@ -8,8 +8,12 @@ import time
 import uuid
 from datetime import datetime
 
-from termnet.trajectory_evaluator import (Step, StepPhase, TrajectoryEvaluator,
-                                          TrajectoryStatus)
+from termnet.trajectory_evaluator import (
+    Step,
+    StepPhase,
+    TrajectoryEvaluator,
+    TrajectoryStatus,
+)
 
 
 def create_test_trajectory():
@@ -23,7 +27,7 @@ def create_test_trajectory():
     print(f"Creating test trajectory: {request_id}")
 
     # Start the trajectory
-    trajectory = evaluator.start_trajectory(
+    evaluator.start_trajectory(
         request_id=request_id, tags=["test", "demo", "multi-tool"]
     )
 
@@ -187,10 +191,10 @@ def create_test_trajectory():
     # Finish the trajectory
     evaluator.finish_trajectory(request_id, TrajectoryStatus.COMPLETED)
 
-    print(f"\n✓ Test trajectory created successfully!")
+    print("\n✓ Test trajectory created successfully!")
     print(f"  Request ID: {request_id}")
-    print(f"  Total steps: 12")
-    print(f"  ReAct cycles: 4")
+    print("  Total steps: 12")
+    print("  ReAct cycles: 4")
 
     # Save as golden trajectory
     evaluator.save_golden(
@@ -198,7 +202,7 @@ def create_test_trajectory():
         label="test_multi_tool_flow",
         description="Test trajectory with multiple tools and error recovery",
     )
-    print(f"\n✓ Saved as golden trajectory: 'test_multi_tool_flow'")
+    print("\n✓ Saved as golden trajectory: 'test_multi_tool_flow'")
 
     # Display the trajectory
     print("\n" + "=" * 60)
@@ -219,9 +223,7 @@ def test_comparison():
     request_id2 = f"test_{uuid.uuid4().hex[:8]}"
     print(f"\nCreating comparison trajectory: {request_id2}")
 
-    trajectory = evaluator.start_trajectory(
-        request_id=request_id2, tags=["test", "comparison"]
-    )
+    evaluator.start_trajectory(request_id=request_id2, tags=["test", "comparison"])
 
     # Similar but faster execution
     steps = [
@@ -356,8 +358,8 @@ if __name__ == "__main__":
 
     print("\n" + "=" * 60)
     print("✅ All tests completed successfully!")
-    print(f"\nCreated trajectories:")
+    print("\nCreated trajectories:")
     print(f"  - {request_id1} (golden: test_multi_tool_flow)")
     print(f"  - {request_id2} (comparison test)")
-    print(f"\nDatabase: test_trajectory.db")
+    print("\nDatabase: test_trajectory.db")
     print("=" * 60)

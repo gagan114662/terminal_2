@@ -5,16 +5,13 @@ Continuously monitors and verifies all agent claims with evidence
 
 import asyncio
 import json
-import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
-from termnet.claims_engine import (Claim, ClaimsEngine, ClaimSeverity,
-                                   ClaimStatus)
-from termnet.command_lifecycle import CommandLifecycle
+from termnet.claims_engine import Claim, ClaimsEngine, ClaimSeverity, ClaimStatus
 from termnet.sandbox import SandboxManager
 from termnet.validation_engine import ValidationEngine, ValidationStatus
 
@@ -280,7 +277,7 @@ class ClaimAuditor:
                                 claim_id=claim.id,
                                 severity=AuditSeverity.HIGH,
                                 category="false_claim",
-                                description=f"Claim conflicts with validation system",
+                                description="Claim conflicts with validation system",
                                 details={
                                     "validation_status": validation.get("status"),
                                     "validation_message": validation.get("message", ""),
@@ -290,7 +287,7 @@ class ClaimAuditor:
                             )
                         )
 
-            except Exception as e:
+            except Exception:
                 # Non-critical - just log for debugging
                 pass
 
@@ -325,7 +322,7 @@ class ClaimAuditor:
                         claim_id=claim.id,
                         severity=AuditSeverity.MEDIUM,
                         category="timeline_inconsistency",
-                        description=f"Evidence predates claim by more than 1 minute",
+                        description="Evidence predates claim by more than 1 minute",
                         details={
                             "evidence_path": evidence_path,
                             "evidence_time": evidence_time.isoformat(),

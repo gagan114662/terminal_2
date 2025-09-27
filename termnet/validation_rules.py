@@ -3,14 +3,15 @@ ValidationRules - Standard validation rules for TermNet projects
 """
 
 import ast
-import json
-import os
-import subprocess
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
-from termnet.validation_engine import (ValidationResult, ValidationRule,
-                                       ValidationSeverity, ValidationStatus)
+from termnet.validation_engine import (
+    ValidationResult,
+    ValidationRule,
+    ValidationSeverity,
+    ValidationStatus,
+)
 
 
 class PythonSyntaxValidation(ValidationRule):

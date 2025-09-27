@@ -1,1 +1,0 @@
-bash: line 58: python: command not found

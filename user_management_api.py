@@ -3,8 +3,12 @@ from datetime import datetime, timedelta
 
 from flask import Flask, jsonify, request
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import (JWTManager, create_access_token,
-                                get_jwt_identity, jwt_required)
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    get_jwt_identity,
+    jwt_required,
+)
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
