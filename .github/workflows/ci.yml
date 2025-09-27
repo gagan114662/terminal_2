@@ -39,7 +39,25 @@ jobs:
     - name: Run pre-commit hooks
       run: |
         pip install pre-commit
-        pre-commit run --all-files --show-diff-on-failure
+        # First run to catch and fix any issues
+        if ! pre-commit run --all-files; then
+          echo "Pre-commit hooks made changes. Checking if repository is now clean..."
+          # Add any changes made by pre-commit hooks
+          git add -A
+          # Check if there are still changes to commit
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "❌ Repository has uncommitted changes after pre-commit formatting:"
+            git status --porcelain
+            echo ""
+            echo "These files need to be committed with their formatting changes."
+            echo "Please run 'pre-commit run --all-files' locally and commit the changes."
+            exit 1
+          else
+            echo "✅ Repository is clean after pre-commit formatting"
+          fi
+        else
+          echo "✅ All pre-commit hooks passed without making changes"
+        fi
 
     - name: Test with pytest
       run: |
