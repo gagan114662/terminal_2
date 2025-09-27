@@ -3,16 +3,15 @@ Claims Engine - Track all agent assertions with verifiable evidence
 Phase 3 of TermNet validation system: "No False Claims"
 """
 
-import json
 import hashlib
-import time
-import os
+import json
 import sqlite3
+import time
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Union
-from dataclasses import dataclass, asdict
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 
 class ClaimStatus(Enum):
@@ -25,21 +24,22 @@ class ClaimStatus(Enum):
 
 class ClaimSeverity(Enum):
     CRITICAL = "critical"  # Build/deploy claims
-    HIGH = "high"         # Test/feature claims
-    MEDIUM = "medium"     # Performance/quality claims
-    LOW = "low"          # Documentation/style claims
-    INFO = "info"        # Status/progress claims
+    HIGH = "high"  # Test/feature claims
+    MEDIUM = "medium"  # Performance/quality claims
+    LOW = "low"  # Documentation/style claims
+    INFO = "info"  # Status/progress claims
 
 
 @dataclass
 class Evidence:
     """Evidence artifact for a claim"""
+
     path: str
     type: str  # "log", "screenshot", "artifact", "transcript", "output"
     hash: str
     size: int
     created_at: str
-    description: Optional[str] = None
+    description: str | None = None
 
     def __post_init__(self):
         if not self.created_at:
@@ -49,17 +49,18 @@ class Evidence:
 @dataclass
 class Claim:
     """A claim made by an agent with evidence"""
+
     id: str
-    what: str           # What was claimed
-    agent: str          # Which agent made the claim
-    command: str        # Command that was executed
+    what: str  # What was claimed
+    agent: str  # Which agent made the claim
+    command: str  # Command that was executed
     status: ClaimStatus
     severity: ClaimSeverity
-    evidence: List[Evidence]
-    verifier: Optional[str] = None    # Tool/script that verified
-    error_message: Optional[str] = None
+    evidence: list[Evidence]
+    verifier: str | None = None  # Tool/script that verified
+    error_message: str | None = None
     created_at: str = ""
-    verified_at: Optional[str] = None
+    verified_at: str | None = None
 
     def __post_init__(self):
         if not self.created_at:
@@ -86,8 +87,12 @@ class EvidenceCollector:
         (self.base_path / "evidence").mkdir(exist_ok=True)
         (self.base_path / "screenshots").mkdir(exist_ok=True)
 
-    def collect_file(self, file_path: str, evidence_type: str = "artifact",
-                    description: Optional[str] = None) -> Evidence:
+    def collect_file(
+        self,
+        file_path: str,
+        evidence_type: str = "artifact",
+        description: str | None = None,
+    ) -> Evidence:
         """Collect a file as evidence"""
         source_path = Path(file_path)
         if not source_path.exists():
@@ -104,6 +109,7 @@ class EvidenceCollector:
 
         # Copy file
         import shutil
+
         shutil.copy2(source_path, evidence_path)
 
         return Evidence(
@@ -112,11 +118,16 @@ class EvidenceCollector:
             hash=file_hash,
             size=file_size,
             created_at=datetime.now().isoformat(),
-            description=description
+            description=description,
         )
 
-    def collect_command_output(self, command: str, output: str, exit_code: int,
-                              description: Optional[str] = None) -> Evidence:
+    def collect_command_output(
+        self,
+        command: str,
+        output: str,
+        exit_code: int,
+        description: str | None = None,
+    ) -> Evidence:
         """Collect command output as evidence"""
         timestamp = int(time.time())
         log_file = self.base_path / "logs" / f"{timestamp}_command.log"
@@ -127,10 +138,10 @@ class EvidenceCollector:
             "output": output,
             "exit_code": exit_code,
             "timestamp": datetime.now().isoformat(),
-            "description": description
+            "description": description,
         }
 
-        with open(log_file, 'w') as f:
+        with open(log_file, "w") as f:
             json.dump(log_data, f, indent=2)
 
         file_hash = self._hash_file(log_file)
@@ -141,16 +152,17 @@ class EvidenceCollector:
             hash=file_hash,
             size=log_file.stat().st_size,
             created_at=log_data["timestamp"],
-            description=f"Command: {command}"
+            description=f"Command: {command}",
         )
 
-    def collect_transcript(self, transcript_content: str,
-                          description: Optional[str] = None) -> Evidence:
+    def collect_transcript(
+        self, transcript_content: str, description: str | None = None
+    ) -> Evidence:
         """Collect terminal transcript as evidence"""
         timestamp = int(time.time())
         transcript_file = self.base_path / "transcripts" / f"{timestamp}_session.txt"
 
-        with open(transcript_file, 'w') as f:
+        with open(transcript_file, "w") as f:
             f.write(transcript_content)
 
         file_hash = self._hash_file(transcript_file)
@@ -161,16 +173,17 @@ class EvidenceCollector:
             hash=file_hash,
             size=transcript_file.stat().st_size,
             created_at=datetime.now().isoformat(),
-            description=description or "Terminal transcript"
+            description=description or "Terminal transcript",
         )
 
-    def collect_test_results(self, results_data: Dict[str, Any],
-                           description: Optional[str] = None) -> Evidence:
+    def collect_test_results(
+        self, results_data: dict[str, Any], description: str | None = None
+    ) -> Evidence:
         """Collect test results as evidence"""
         timestamp = int(time.time())
         results_file = self.base_path / "logs" / f"{timestamp}_tests.json"
 
-        with open(results_file, 'w') as f:
+        with open(results_file, "w") as f:
             json.dump(results_data, f, indent=2)
 
         file_hash = self._hash_file(results_file)
@@ -181,7 +194,7 @@ class EvidenceCollector:
             hash=file_hash,
             size=results_file.stat().st_size,
             created_at=datetime.now().isoformat(),
-            description=description or "Test results"
+            description=description or "Test results",
         )
 
     def _hash_file(self, file_path: Path) -> str:
@@ -199,13 +212,14 @@ class ClaimsEngine:
     def __init__(self, db_path: str = "termnet_claims.db"):
         self.db_path = db_path
         self.evidence_collector = EvidenceCollector()
-        self.claims: List[Claim] = []
+        self.claims: list[Claim] = []
         self._init_database()
 
     def _init_database(self):
         """Initialize SQLite database for claims storage"""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS claims (
                     id TEXT PRIMARY KEY,
                     what TEXT NOT NULL,
@@ -218,9 +232,11 @@ class ClaimsEngine:
                     created_at TEXT NOT NULL,
                     verified_at TEXT
                 )
-            """)
+            """
+            )
 
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS evidence (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     claim_id TEXT NOT NULL,
@@ -232,11 +248,17 @@ class ClaimsEngine:
                     description TEXT,
                     FOREIGN KEY (claim_id) REFERENCES claims (id)
                 )
-            """)
+            """
+            )
             conn.commit()
 
-    def make_claim(self, what: str, agent: str, command: str = "",
-                   severity: ClaimSeverity = ClaimSeverity.MEDIUM) -> Claim:
+    def make_claim(
+        self,
+        what: str,
+        agent: str,
+        command: str = "",
+        severity: ClaimSeverity = ClaimSeverity.MEDIUM,
+    ) -> Claim:
         """Create a new claim"""
         claim = Claim(
             id="",  # Will be generated
@@ -245,7 +267,7 @@ class ClaimsEngine:
             command=command,
             status=ClaimStatus.PENDING,
             severity=severity,
-            evidence=[]
+            evidence=[],
         )
 
         self.claims.append(claim)
@@ -255,24 +277,38 @@ class ClaimsEngine:
     def add_evidence(self, claim: Claim, evidence: Evidence) -> bool:
         """Add evidence to a claim"""
         claim.evidence.append(evidence)
-        print(f"📎 Evidence added to claim {claim.id}: {evidence.type} - {evidence.path}")
+        print(
+            f"📎 Evidence added to claim {claim.id}: {evidence.type} - {evidence.path}"
+        )
 
         # Auto-verify if evidence meets criteria
         return self._try_auto_verify(claim)
 
-    def add_evidence_from_file(self, claim: Claim, file_path: str,
-                              evidence_type: str = "artifact",
-                              description: Optional[str] = None) -> bool:
+    def add_evidence_from_file(
+        self,
+        claim: Claim,
+        file_path: str,
+        evidence_type: str = "artifact",
+        description: str | None = None,
+    ) -> bool:
         """Add file evidence to claim"""
         try:
-            evidence = self.evidence_collector.collect_file(file_path, evidence_type, description)
+            evidence = self.evidence_collector.collect_file(
+                file_path, evidence_type, description
+            )
             return self.add_evidence(claim, evidence)
         except Exception as e:
             print(f"❌ Failed to collect evidence from {file_path}: {e}")
             return False
 
-    def add_command_evidence(self, claim: Claim, command: str, output: str,
-                           exit_code: int, description: Optional[str] = None) -> bool:
+    def add_command_evidence(
+        self,
+        claim: Claim,
+        command: str,
+        output: str,
+        exit_code: int,
+        description: str | None = None,
+    ) -> bool:
         """Add command execution evidence to claim"""
         try:
             evidence = self.evidence_collector.collect_command_output(
@@ -337,35 +373,55 @@ class ClaimsEngine:
         try:
             with sqlite3.connect(self.db_path) as conn:
                 # Store claim
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT OR REPLACE INTO claims
                     (id, what, agent, command, status, severity, verifier, error_message, created_at, verified_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    claim.id, claim.what, claim.agent, claim.command,
-                    claim.status.value, claim.severity.value,
-                    claim.verifier, claim.error_message,
-                    claim.created_at, claim.verified_at
-                ))
+                """,
+                    (
+                        claim.id,
+                        claim.what,
+                        claim.agent,
+                        claim.command,
+                        claim.status.value,
+                        claim.severity.value,
+                        claim.verifier,
+                        claim.error_message,
+                        claim.created_at,
+                        claim.verified_at,
+                    ),
+                )
 
                 # Store evidence
                 for evidence in claim.evidence:
-                    conn.execute("""
+                    conn.execute(
+                        """
                         INSERT INTO evidence
                         (claim_id, path, type, hash, size, created_at, description)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, (
-                        claim.id, evidence.path, evidence.type,
-                        evidence.hash, evidence.size,
-                        evidence.created_at, evidence.description
-                    ))
+                    """,
+                        (
+                            claim.id,
+                            evidence.path,
+                            evidence.type,
+                            evidence.hash,
+                            evidence.size,
+                            evidence.created_at,
+                            evidence.description,
+                        ),
+                    )
 
                 conn.commit()
         except Exception as e:
             print(f"❌ Failed to store claim {claim.id}: {e}")
 
-    def get_claims(self, status: Optional[ClaimStatus] = None,
-                   agent: Optional[str] = None, limit: int = 100) -> List[Claim]:
+    def get_claims(
+        self,
+        status: ClaimStatus | None = None,
+        agent: str | None = None,
+        limit: int = 100,
+    ) -> list[Claim]:
         """Get claims from database"""
         query = "SELECT * FROM claims"
         params = []
@@ -393,33 +449,34 @@ class ClaimsEngine:
 
                     # Load evidence
                     evidence_rows = conn.execute(
-                        "SELECT * FROM evidence WHERE claim_id = ?",
-                        (claim_data['id'],)
+                        "SELECT * FROM evidence WHERE claim_id = ?", (claim_data["id"],)
                     ).fetchall()
 
                     evidence_list = []
                     for ev_row in evidence_rows:
-                        evidence_list.append(Evidence(
-                            path=ev_row['path'],
-                            type=ev_row['type'],
-                            hash=ev_row['hash'],
-                            size=ev_row['size'],
-                            created_at=ev_row['created_at'],
-                            description=ev_row['description']
-                        ))
+                        evidence_list.append(
+                            Evidence(
+                                path=ev_row["path"],
+                                type=ev_row["type"],
+                                hash=ev_row["hash"],
+                                size=ev_row["size"],
+                                created_at=ev_row["created_at"],
+                                description=ev_row["description"],
+                            )
+                        )
 
                     claim = Claim(
-                        id=claim_data['id'],
-                        what=claim_data['what'],
-                        agent=claim_data['agent'],
-                        command=claim_data['command'],
-                        status=ClaimStatus(claim_data['status']),
-                        severity=ClaimSeverity(claim_data['severity']),
+                        id=claim_data["id"],
+                        what=claim_data["what"],
+                        agent=claim_data["agent"],
+                        command=claim_data["command"],
+                        status=ClaimStatus(claim_data["status"]),
+                        severity=ClaimSeverity(claim_data["severity"]),
                         evidence=evidence_list,
-                        verifier=claim_data['verifier'],
-                        error_message=claim_data['error_message'],
-                        created_at=claim_data['created_at'],
-                        verified_at=claim_data['verified_at']
+                        verifier=claim_data["verifier"],
+                        error_message=claim_data["error_message"],
+                        created_at=claim_data["created_at"],
+                        verified_at=claim_data["verified_at"],
                     )
                     claims.append(claim)
         except Exception as e:
@@ -427,33 +484,39 @@ class ClaimsEngine:
 
         return claims
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get claims statistics"""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     SELECT
                         status,
                         COUNT(*) as count
                     FROM claims
                     GROUP BY status
-                """)
+                """
+                )
                 status_counts = {row[0]: row[1] for row in cursor}
 
                 cursor = conn.execute("SELECT COUNT(*) FROM claims")
                 total_claims = cursor.fetchone()[0]
 
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     SELECT COUNT(*) FROM claims
                     WHERE status = 'verified' AND created_at >= datetime('now', '-24 hours')
-                """)
+                """
+                )
                 verified_today = cursor.fetchone()[0]
 
                 return {
                     "total_claims": total_claims,
                     "status_breakdown": status_counts,
                     "verified_today": verified_today,
-                    "verification_rate": status_counts.get('verified', 0) / max(total_claims, 1) * 100
+                    "verification_rate": status_counts.get("verified", 0)
+                    / max(total_claims, 1)
+                    * 100,
                 }
         except Exception as e:
             print(f"❌ Failed to get statistics: {e}")
@@ -466,13 +529,13 @@ class ClaimsEngine:
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             for claim in claims:
                 claim_dict = asdict(claim)
                 # Convert enums to strings
-                claim_dict['status'] = claim.status.value
-                claim_dict['severity'] = claim.severity.value
-                f.write(json.dumps(claim_dict) + '\n')
+                claim_dict["status"] = claim.status.value
+                claim_dict["severity"] = claim.severity.value
+                f.write(json.dumps(claim_dict) + "\n")
 
         print(f"📄 Exported {len(claims)} claims to {output_path}")
         return output_path
@@ -488,7 +551,8 @@ class SemanticChecker:
     def _init_semantic_schema(self):
         """Initialize semantic_scores table"""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS semantic_scores (
                     request_id TEXT PRIMARY KEY,
                     grounding REAL,
@@ -497,10 +561,11 @@ class SemanticChecker:
                     final INTEGER,
                     created_at TEXT
                 )
-            """)
+            """
+            )
             conn.commit()
 
-    def score_answer(self, answer: str, evidence: List[str]) -> Dict[str, Any]:
+    def score_answer(self, answer: str, evidence: list[str]) -> dict[str, Any]:
         """Score answer quality using deterministic heuristics
 
         Args:
@@ -526,13 +591,15 @@ class SemanticChecker:
         style_score = self._compute_style(answer)
 
         # 4. Final score: weighted combination
-        final = round(100 * (0.5 * grounding_score + 0.4 * consistency_score + 0.1 * style_score))
+        final = round(
+            100 * (0.5 * grounding_score + 0.4 * consistency_score + 0.1 * style_score)
+        )
 
         return {
             "grounding": round(grounding_score, 3),
             "consistency": round(consistency_score, 3),
             "style": round(style_score, 3),
-            "final": final
+            "final": final,
         }
 
     def _compute_grounding(self, answer: str, evidence: str) -> float:
@@ -555,8 +622,17 @@ class SemanticChecker:
 
         # Penalize uncertainty phrases
         uncertainty_phrases = [
-            "i made that up", "unsure", "not sure", "don't know", "unclear",
-            "might be", "could be", "possibly", "maybe", "perhaps", "uncertain"
+            "i made that up",
+            "unsure",
+            "not sure",
+            "don't know",
+            "unclear",
+            "might be",
+            "could be",
+            "possibly",
+            "maybe",
+            "perhaps",
+            "uncertain",
         ]
 
         for phrase in uncertainty_phrases:
@@ -566,8 +642,12 @@ class SemanticChecker:
         # Distinguish contradictions from simple negations
         # Look for explicit contradictions like "but evidence shows" or "however"
         contradiction_patterns = [
-            "but evidence shows", "however evidence", "contradicts", "differs from",
-            "unlike the evidence", "evidence suggests otherwise"
+            "but evidence shows",
+            "however evidence",
+            "contradicts",
+            "differs from",
+            "unlike the evidence",
+            "evidence suggests otherwise",
         ]
 
         for pattern in contradiction_patterns:
@@ -581,13 +661,20 @@ class SemanticChecker:
         score = 0.0
 
         # Reward citations
-        citation_patterns = ["(source)", "[ref]", "source a", "source b", "(ref)", "according to"]
+        citation_patterns = [
+            "(source)",
+            "[ref]",
+            "source a",
+            "source b",
+            "(ref)",
+            "according to",
+        ]
         has_citations = any(pattern in answer.lower() for pattern in citation_patterns)
         if has_citations:
             score += 0.5
 
         # Reward ≥2 sentences
-        sentence_count = len([s for s in answer.split('.') if s.strip()])
+        sentence_count = len([s for s in answer.split(".") if s.strip()])
         if sentence_count >= 2:
             score += 0.3
 
@@ -598,31 +685,35 @@ class SemanticChecker:
 
         return max(0.0, min(1.0, score))
 
-    def _tokenize(self, text: str) -> List[str]:
+    def _tokenize(self, text: str) -> list[str]:
         """Simple tokenization for overlap calculation"""
         import re
+
         # Remove punctuation and split on whitespace
-        text = re.sub(r'[^\w\s]', ' ', text)
+        text = re.sub(r"[^\w\s]", " ", text)
         return [token.strip() for token in text.split() if len(token.strip()) > 2]
 
-    def save_semantic_score(self, request_id: str, score_dict: Dict[str, Any]):
+    def save_semantic_score(self, request_id: str, score_dict: dict[str, Any]):
         """Save semantic score to database"""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT OR REPLACE INTO semantic_scores
                 (request_id, grounding, consistency, style, final, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                request_id,
-                score_dict["grounding"],
-                score_dict["consistency"],
-                score_dict["style"],
-                score_dict["final"],
-                datetime.now().isoformat()
-            ))
+            """,
+                (
+                    request_id,
+                    score_dict["grounding"],
+                    score_dict["consistency"],
+                    score_dict["style"],
+                    score_dict["final"],
+                    datetime.now().isoformat(),
+                ),
+            )
             conn.commit()
 
-    def llm_judge(self, answer: str, rubric: str) -> Optional[Dict[str, Any]]:
+    def llm_judge(self, answer: str, rubric: str) -> dict[str, Any] | None:
         """Stub for future LLM-based evaluation"""
         # TODO: Implement LLM judging with external API
         return None

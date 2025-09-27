@@ -4,20 +4,16 @@ Phase 3 of TermNet validation system: Plan → Preview → Simulate → Execute 
 """
 
 import asyncio
-import json
 import os
 import re
-import subprocess
-import tempfile
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from termnet.claims_engine import (Claim, ClaimsEngine, ClaimSeverity,
-                                   EvidenceCollector)
+from termnet.claims_engine import Claim, ClaimsEngine, ClaimSeverity, EvidenceCollector
 
 
 class StageStatus(Enum):
@@ -42,11 +38,11 @@ class CommandStage:
 
     name: str
     status: StageStatus
-    start_time: Optional[str] = None
-    end_time: Optional[str] = None
+    start_time: str | None = None
+    end_time: str | None = None
     output: str = ""
     error: str = ""
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -60,10 +56,10 @@ class CommandExecution:
     command: str
     agent: str
     working_dir: str
-    stages: Dict[str, CommandStage]
-    claim: Optional[Claim] = None
+    stages: dict[str, CommandStage]
+    claim: Claim | None = None
     rollback_strategy: RollbackStrategy = RollbackStrategy.NONE
-    rollback_data: Dict[str, Any] = None
+    rollback_data: dict[str, Any] = None
     created_at: str = ""
 
     def __post_init__(self):
@@ -87,10 +83,10 @@ class CommandExecution:
 class CommandLifecycle:
     """Enhanced command execution with 6-stage pipeline and evidence collection"""
 
-    def __init__(self, claims_engine: Optional[ClaimsEngine] = None):
+    def __init__(self, claims_engine: ClaimsEngine | None = None):
         self.claims_engine = claims_engine or ClaimsEngine()
         self.evidence_collector = EvidenceCollector()
-        self.executions: List[CommandExecution] = []
+        self.executions: list[CommandExecution] = []
 
         # Patterns for different command types
         self.simulation_patterns = {
@@ -189,7 +185,9 @@ class CommandLifecycle:
             stage.output = f"Planned execution of: {execution.command}"
             stage.status = StageStatus.COMPLETED
 
-            print(f"📋 Plan: {execution.command} (Risk: {plan_data['risk_assessment']})")
+            print(
+                f"📋 Plan: {execution.command} (Risk: {plan_data['risk_assessment']})"
+            )
 
         except Exception as e:
             stage.status = StageStatus.FAILED
@@ -325,10 +323,10 @@ class CommandLifecycle:
                 stage.error = f"Command failed with exit code {result['exit_code']}"
                 print(f"❌ Execute: {execution.command} (exit: {result['exit_code']})")
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             stage.status = StageStatus.FAILED
             stage.error = f"Command timed out after {timeout}s"
-            print(f"⏰ Execute: Command timed out")
+            print("⏰ Execute: Command timed out")
 
         except Exception as e:
             stage.status = StageStatus.FAILED
@@ -390,7 +388,7 @@ class CommandLifecycle:
             else:
                 stage.status = StageStatus.FAILED
                 stage.error = "No success tokens found in output"
-                print(f"❌ Verify: No success indicators found")
+                print("❌ Verify: No success indicators found")
 
         except Exception as e:
             stage.status = StageStatus.FAILED
@@ -474,7 +472,7 @@ class CommandLifecycle:
 
         return "LOW"
 
-    def _predict_outcomes(self, command: str) -> List[str]:
+    def _predict_outcomes(self, command: str) -> list[str]:
         """Predict expected outcomes of command"""
         outcomes = []
 
@@ -500,7 +498,7 @@ class CommandLifecycle:
 
         if (
             any(op in command for op in ["mv", "cp", "rm"])
-            and not "--dry-run" in command
+            and "--dry-run" not in command
         ):
             return RollbackStrategy.FILE_RESTORE
 
@@ -539,7 +537,7 @@ class CommandLifecycle:
 
         return redacted
 
-    def _check_dangerous_patterns(self, command: str) -> List[str]:
+    def _check_dangerous_patterns(self, command: str) -> list[str]:
         """Check for dangerous command patterns"""
         dangers = []
         patterns = {
@@ -606,7 +604,7 @@ class CommandLifecycle:
 
     async def _execute_with_transcript(
         self, command: str, working_dir: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute command with transcript recording"""
         start_time = time.time()
 
@@ -665,7 +663,7 @@ class CommandLifecycle:
 
     # Simulation methods
 
-    async def _simulate_git(self, command: str, working_dir: str) -> Dict[str, Any]:
+    async def _simulate_git(self, command: str, working_dir: str) -> dict[str, Any]:
         """Simulate git commands"""
         if "status" in command:
             return {
@@ -698,7 +696,7 @@ class CommandLifecycle:
             "output": f"Simulated: {command}",
         }
 
-    async def _simulate_npm(self, command: str, working_dir: str) -> Dict[str, Any]:
+    async def _simulate_npm(self, command: str, working_dir: str) -> dict[str, Any]:
         """Simulate npm commands"""
         if "install" in command or "ci" in command:
             return {
@@ -717,12 +715,12 @@ class CommandLifecycle:
             }
 
         return {
-            "summary": f"NPM operation simulated",
+            "summary": "NPM operation simulated",
             "safe": True,
             "output": f"Simulated: {command}",
         }
 
-    async def _simulate_pip(self, command: str, working_dir: str) -> Dict[str, Any]:
+    async def _simulate_pip(self, command: str, working_dir: str) -> dict[str, Any]:
         """Simulate pip commands"""
         return {
             "summary": "Python package installation simulated",
@@ -731,7 +729,7 @@ class CommandLifecycle:
             "estimated_duration": 45,
         }
 
-    async def _simulate_docker(self, command: str, working_dir: str) -> Dict[str, Any]:
+    async def _simulate_docker(self, command: str, working_dir: str) -> dict[str, Any]:
         """Simulate docker commands"""
         if "build" in command:
             return {
@@ -754,7 +752,7 @@ class CommandLifecycle:
             "output": f"Simulated: {command}",
         }
 
-    async def _simulate_pytest(self, command: str, working_dir: str) -> Dict[str, Any]:
+    async def _simulate_pytest(self, command: str, working_dir: str) -> dict[str, Any]:
         """Simulate pytest commands"""
         return {
             "summary": "Test execution simulated",
@@ -765,7 +763,7 @@ class CommandLifecycle:
 
     async def _simulate_python_module(
         self, command: str, working_dir: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Simulate python -m commands"""
         return {
             "summary": "Python module execution simulated",
@@ -778,7 +776,7 @@ class CommandLifecycle:
 
     async def _perform_additional_verification(
         self, execution: CommandExecution
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Perform additional verification checks"""
         checks = {}
 
@@ -833,7 +831,7 @@ class CommandLifecycle:
             execution.rollback_data["backup_created"] = int(time.time())
             # TODO: Implement file backup logic
 
-    async def _perform_rollback(self, execution: CommandExecution) -> Dict[str, Any]:
+    async def _perform_rollback(self, execution: CommandExecution) -> dict[str, Any]:
         """Perform actual rollback based on strategy"""
         strategy = execution.rollback_strategy
 

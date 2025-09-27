@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agentic_rag import AgenticRAG, CodeSearchResult
 from react_framework import ReActFramework
@@ -23,8 +23,8 @@ class RAGProcessor:
         self.query_cache = {}
 
     def process_development_query(
-        self, query: str, context: Dict = None
-    ) -> Dict[str, Any]:
+        self, query: str, context: dict = None
+    ) -> dict[str, Any]:
         """Process a development query using ReAct + RAG"""
 
         # Initialize ReAct chain
@@ -80,8 +80,8 @@ class RAGProcessor:
         }
 
     def _execute_refined_search(
-        self, query: str, initial_results: Dict, action: str
-    ) -> Dict[str, Any]:
+        self, query: str, initial_results: dict, action: str
+    ) -> dict[str, Any]:
         """Execute refined search based on initial findings and reasoning"""
 
         if "high-confidence" in action.lower():
@@ -132,7 +132,7 @@ class RAGProcessor:
             }
 
     def _generate_related_query(
-        self, original_query: str, top_results: List[CodeSearchResult]
+        self, original_query: str, top_results: list[CodeSearchResult]
     ) -> str:
         """Generate related search query based on top results"""
         # Extract key terms from top results
@@ -149,7 +149,7 @@ class RAGProcessor:
 
         return f"related to {original_query}: {' '.join(key_terms)}"
 
-    def _extract_broader_terms(self, query: str) -> List[str]:
+    def _extract_broader_terms(self, query: str) -> list[str]:
         """Extract broader search terms from original query"""
         words = query.lower().split()
         broader_terms = []
@@ -170,7 +170,7 @@ class RAGProcessor:
 
         return broader_terms[:5]  # Limit to 5 terms
 
-    def _find_potential_dependencies(self, query: str) -> List[str]:
+    def _find_potential_dependencies(self, query: str) -> list[str]:
         """Find potential dependencies for new implementation"""
         # Search for common patterns that might be dependencies
         dependency_results = self.rag.search_engine.search_implementations(
@@ -184,7 +184,7 @@ class RAGProcessor:
 
         return dependencies
 
-    def _find_similar_implementations(self, query: str) -> List[CodeSearchResult]:
+    def _find_similar_implementations(self, query: str) -> list[CodeSearchResult]:
         """Find similar implementations in the codebase"""
         # Extract key concepts and search for similar patterns
         words = query.lower().split()
@@ -197,24 +197,24 @@ class RAGProcessor:
         return []
 
     def _synthesize_with_reasoning(
-        self, query: str, rag_result: Dict, refined_results: Dict
+        self, query: str, rag_result: dict, refined_results: dict
     ) -> str:
         """Synthesize findings with reasoning chain"""
         synthesis = f"## Analysis of: {query}\n\n"
 
-        synthesis += f"**Reasoning Process:**\n"
+        synthesis += "**Reasoning Process:**\n"
         synthesis += (
             f"- Initial search found {len(rag_result['search_results'])} results\n"
         )
         synthesis += f"- Confidence level: {rag_result['confidence_score']:.2f}\n"
         synthesis += f"- Refined analysis type: {refined_results['type']}\n\n"
 
-        synthesis += f"**Key Findings:**\n"
+        synthesis += "**Key Findings:**\n"
         if rag_result["search_results"]:
             synthesis += f"- Existing implementations found in {len(set(r.file_path for r in rag_result['search_results']))} files\n"
             synthesis += f"- Primary context types: {', '.join(set(r.context_type for r in rag_result['search_results']))}\n"
 
-        synthesis += f"\n**Recommendation:**\n"
+        synthesis += "\n**Recommendation:**\n"
         if rag_result["confidence_score"] > 0.7:
             synthesis += "High confidence - use existing patterns as reference for implementation.\n"
         elif rag_result["confidence_score"] > 0.3:
@@ -227,8 +227,8 @@ class RAGProcessor:
         return synthesis
 
     def _generate_actionable_insights(
-        self, query: str, rag_result: Dict, refined_results: Dict
-    ) -> List[str]:
+        self, query: str, rag_result: dict, refined_results: dict
+    ) -> list[str]:
         """Generate actionable insights for developers"""
         insights = []
 
@@ -255,7 +255,7 @@ class RAGProcessor:
 
         return insights
 
-    def get_verification_commands(self) -> List[str]:
+    def get_verification_commands(self) -> list[str]:
         """Get terminal commands to verify RAG processor functionality"""
         return [
             "echo '🧠 Testing RAG Processor with ReAct'",

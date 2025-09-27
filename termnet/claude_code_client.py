@@ -4,10 +4,8 @@ Uses your existing Claude Code subscription via CLI
 """
 
 import asyncio
-import json
 import os
-import subprocess
-from typing import AsyncGenerator, Tuple
+from collections.abc import AsyncGenerator
 
 from termnet.config import CONFIG
 
@@ -23,7 +21,7 @@ class ClaudeCodeClient:
 
     async def chat_stream(
         self, messages, tools=None, temperature=0.7
-    ) -> AsyncGenerator[Tuple[str, str], None]:
+    ) -> AsyncGenerator[tuple[str, str], None]:
         """
         Stream chat responses from Claude Code CLI
         Yields tuples of (type, content) where type is 'CONTENT' or 'TOOL'

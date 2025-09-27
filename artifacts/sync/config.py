@@ -5,5 +5,5 @@ import pathlib
 BASE_DIR = pathlib.Path(__file__).parent
 
 # Load config.json
-with open(BASE_DIR / "config.json", "r") as f:
+with open(BASE_DIR / "config.json") as f:
     CONFIG = json.load(f)

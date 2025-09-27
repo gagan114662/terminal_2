@@ -4,7 +4,7 @@ import json
 import os
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 SCHEMA_VERSION = "1.0.0"
 
@@ -34,8 +34,8 @@ class TrajectoryStep:
     phase: Phase
     timestamp: str
     latency_ms: int
-    tool_name: Optional[str] = None
-    tool_args_redacted: Optional[Dict[str, Any]] = None
+    tool_name: str | None = None
+    tool_args_redacted: dict[str, Any] | None = None
     schema_version: str = SCHEMA_VERSION
 
 

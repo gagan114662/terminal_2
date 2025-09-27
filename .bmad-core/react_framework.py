@@ -5,7 +5,6 @@ Implements Reasoning + Acting pattern for autonomous development tasks
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
 
 
 class ReActStep:
@@ -22,7 +21,7 @@ class ReActFramework:
     """ReAct (Reasoning + Acting) framework for BMAD agents"""
 
     def __init__(self):
-        self.steps: List[ReActStep] = []
+        self.steps: list[ReActStep] = []
         self.current_goal = ""
         self.context = {}
 

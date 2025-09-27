@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import os
-import time
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
 
 # Local imports
 try:
@@ -110,7 +107,8 @@ class TermNetAgent:
         self.conversation_history = [
             {
                 "role": "system",
-                "content": "You are TermNet, an AI assistant that helps with terminal operations and development tasks.",
+                "content": "You are TermNet, an AI assistant that helps with "
+                + "terminal operations and development tasks.",
             }
         ]
 
@@ -125,9 +123,7 @@ class TermNetAgent:
         # Initialize LLM clients based on CONFIG
         if CONFIG.get("USE_CLAUDE_CODE") and ClaudeCodeClient:
             try:
-                self.claude_code_client = ClaudeCodeClient(
-                    oauth_token=CONFIG.get("CLAUDE_CODE_OAUTH_TOKEN", "")
-                )
+                self.claude_code_client = ClaudeCodeClient()
             except Exception:
                 pass
         elif CONFIG.get("USE_OPENROUTER") and OpenRouterClient:
@@ -270,7 +266,7 @@ class TermNetAgent:
             (res or {}).get("stdout", "") if isinstance(res, dict) else str(res or "")
         )
 
-    def _get_tool_definitions(self) -> List[Dict]:
+    def _get_tool_definitions(self) -> list[dict]:
         """Get tool definitions from tool loader"""
         return self.tool_loader.get_tool_definitions()
 
@@ -280,12 +276,12 @@ class TermNetAgent:
         Handles both sync and async methods. Returns dict or str from tool.
         """
         if hasattr(tool, "execute_command"):
-            fn = getattr(tool, "execute_command")
+            fn = tool.execute_command
             if asyncio.iscoroutinefunction(fn):
                 return await fn(*args, **kwargs)
             return fn(*args, **kwargs)
         elif hasattr(tool, "run"):
-            fn = getattr(tool, "run")
+            fn = tool.run
             if asyncio.iscoroutinefunction(fn):
                 return await fn(*args, **kwargs)
             return fn(*args, **kwargs)
@@ -302,7 +298,7 @@ class TermNetAgent:
             return res
         return {"stdout": str(res), "stderr": "", "exit_code": 0}
 
-    async def _execute_tool(self, tool_name: str, args: Dict, description: str) -> str:
+    async def _execute_tool(self, tool_name: str, args: dict, description: str) -> str:
         """Execute a tool and return its result"""
         try:
             tool_instance = self.tool_loader.get_tool_instance(tool_name)
@@ -325,9 +321,38 @@ class TermNetAgent:
             return f"Tool execution error: {str(e)}"
 
     async def _llm_chat_stream(self, messages=None):
-        """Mock LLM chat stream for tests"""
-        # This is a placeholder method that tests expect to exist
-        # In real implementation, this would handle streaming LLM responses
+        """LLM chat stream using Claude Code CLI or fallback to mock for tests"""
+        # Use provided messages or fall back to conversation history
+        if messages is None:
+            messages = self.conversation_history
+
+        # If we have Claude Code client and it's enabled, use it
+        if self.claude_code_client and CONFIG.get("USE_CLAUDE_CODE"):
+            try:
+                async for event_type, data in self.claude_code_client.chat_stream(
+                    messages
+                ):
+                    yield (event_type, data)
+                return
+            except Exception as e:
+                # Fall through to mock response if Claude Code fails
+                yield ("CONTENT", f"Claude Code error: {e}")
+                return
+
+        # If we have OpenRouter client and it's enabled, use it
+        if self.openrouter_client and CONFIG.get("USE_OPENROUTER"):
+            try:
+                async for event_type, data in self.openrouter_client.chat_stream(
+                    messages
+                ):
+                    yield (event_type, data)
+                return
+            except Exception as e:
+                # Fall through to mock response if OpenRouter fails
+                yield ("CONTENT", f"OpenRouter error: {e}")
+                return
+
+        # Fallback mock response for tests and offline mode
         yield ("CONTENT", "Mock LLM response")
 
 

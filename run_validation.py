@@ -9,11 +9,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from termnet.validation_engine import ValidationEngine
-from termnet.validation_rules import (ApplicationStartupValidation,
-                                      DatabaseValidation,
-                                      FlaskApplicationValidation,
-                                      PythonSyntaxValidation,
-                                      RequirementsValidation)
+from termnet.validation_rules import (
+    ApplicationStartupValidation,
+    DatabaseValidation,
+    FlaskApplicationValidation,
+    PythonSyntaxValidation,
+    RequirementsValidation,
+)
 
 
 async def main():

@@ -3,13 +3,11 @@ Agentic RAG - Active Reasoning and Retrieval System
 Implements intelligent search and analysis for autonomous development
 """
 
-import hashlib
-import json
 import os
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 @dataclass
@@ -20,7 +18,7 @@ class CodeSearchResult:
     content: str
     relevance_score: float
     context_type: str  # "class", "function", "import", "comment", etc.
-    line_numbers: Tuple[int, int]  # start, end
+    line_numbers: tuple[int, int]  # start, end
 
 
 @dataclass
@@ -30,7 +28,7 @@ class RAGQuery:
     query: str
     intent: str  # "find_implementation", "understand_pattern", "locate_dependencies"
     scope: str  # "local", "project", "dependencies"
-    filters: Dict[str, Any]
+    filters: dict[str, Any]
 
 
 class CodeSearchEngine:
@@ -59,7 +57,7 @@ class CodeSearchEngine:
                     relative_path = os.path.relpath(file_path, self.project_path)
 
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
                             self.file_index[relative_path] = {
                                 "content": content,
@@ -71,8 +69,8 @@ class CodeSearchEngine:
                         continue
 
     def search_implementations(
-        self, query: str, file_types: List[str] = None
-    ) -> List[CodeSearchResult]:
+        self, query: str, file_types: list[str] = None
+    ) -> list[CodeSearchResult]:
         """Search for code implementations matching query"""
         results = []
         search_terms = query.lower().split()
@@ -133,7 +131,7 @@ class CodeSearchEngine:
         results.sort(key=lambda x: x.relevance_score, reverse=True)
         return results[:20]  # Return top 20 results
 
-    def _find_classes(self, lines: List[str], search_terms: List[str]) -> List[Dict]:
+    def _find_classes(self, lines: list[str], search_terms: list[str]) -> list[dict]:
         """Find class definitions matching search terms"""
         matches = []
 
@@ -162,7 +160,7 @@ class CodeSearchEngine:
 
         return matches
 
-    def _find_functions(self, lines: List[str], search_terms: List[str]) -> List[Dict]:
+    def _find_functions(self, lines: list[str], search_terms: list[str]) -> list[dict]:
         """Find function definitions matching search terms"""
         matches = []
 
@@ -189,7 +187,7 @@ class CodeSearchEngine:
 
         return matches
 
-    def _find_imports(self, lines: List[str], search_terms: List[str]) -> List[Dict]:
+    def _find_imports(self, lines: list[str], search_terms: list[str]) -> list[dict]:
         """Find import statements matching search terms"""
         matches = []
 
@@ -219,8 +217,8 @@ class AgenticRAG:
         self.reasoning_steps = []
 
     def reason_and_retrieve(
-        self, user_query: str, context: Dict = None
-    ) -> Dict[str, Any]:
+        self, user_query: str, context: dict = None
+    ) -> dict[str, Any]:
         """Main agentic RAG process: reason about what to search, then retrieve"""
 
         # Step 1: Analyze the query and determine search strategy
@@ -255,7 +253,7 @@ class AgenticRAG:
             "confidence_score": self._calculate_confidence(search_results),
         }
 
-    def _analyze_query(self, query: str, context: Dict = None) -> RAGQuery:
+    def _analyze_query(self, query: str, context: dict = None) -> RAGQuery:
         """Analyze user query to determine search intent and parameters"""
         query_lower = query.lower()
 
@@ -290,7 +288,7 @@ class AgenticRAG:
 
         return RAGQuery(query=query, intent=intent, scope=scope, filters=filters)
 
-    def _generate_reasoning_plan(self, rag_query: RAGQuery) -> List[str]:
+    def _generate_reasoning_plan(self, rag_query: RAGQuery) -> list[str]:
         """Generate reasoning steps for what information to search for"""
         reasoning = []
 
@@ -325,14 +323,14 @@ class AgenticRAG:
         return reasoning
 
     def _execute_search(
-        self, rag_query: RAGQuery, reasoning: List[str]
-    ) -> List[CodeSearchResult]:
+        self, rag_query: RAGQuery, reasoning: list[str]
+    ) -> list[CodeSearchResult]:
         """Execute search based on query and reasoning"""
         file_types = rag_query.filters.get("file_types")
         return self.search_engine.search_implementations(rag_query.query, file_types)
 
     def _synthesize_results(
-        self, original_query: str, results: List[CodeSearchResult], reasoning: List[str]
+        self, original_query: str, results: list[CodeSearchResult], reasoning: list[str]
     ) -> str:
         """Synthesize search results into actionable insights"""
         if not results:
@@ -359,7 +357,7 @@ class AgenticRAG:
 
         return synthesis
 
-    def _calculate_confidence(self, results: List[CodeSearchResult]) -> float:
+    def _calculate_confidence(self, results: list[CodeSearchResult]) -> float:
         """Calculate confidence score for the search results"""
         if not results:
             return 0.0
@@ -370,7 +368,7 @@ class AgenticRAG:
 
         return min(avg_score * result_count_factor, 1.0)
 
-    def get_terminal_verification_commands(self) -> List[str]:
+    def get_terminal_verification_commands(self) -> list[str]:
         """Get terminal commands to verify RAG system functionality"""
         return [
             "echo '🔍 Testing Agentic RAG System'",

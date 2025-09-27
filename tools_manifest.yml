@@ -1,0 +1,80 @@
+# TermNet Tools Security Manifest
+# Defines allowed tools and their argument schemas
+
+allowed_tools:
+  - terminal
+  - scratchpad
+  - file_read
+  - file_write
+  - web_search
+  - calculator
+
+arg_schemas:
+  terminal:
+    description: "Execute terminal commands"
+    required:
+      - command
+    properties:
+      command:
+        type: string
+        pattern: "^[^;&|]+$"  # No shell operators
+      timeout:
+        type: integer
+        minimum: 1
+        maximum: 30
+
+  scratchpad:
+    description: "Temporary storage for reasoning"
+    required:
+      - action
+    properties:
+      action:
+        type: string
+        enum: ["write", "read", "clear"]
+      content:
+        type: string
+        maxLength: 10000
+
+  file_read:
+    description: "Read file contents"
+    required:
+      - path
+    properties:
+      path:
+        type: string
+        pattern: "^[a-zA-Z0-9_/.\\-]+$"
+
+  file_write:
+    description: "Write to files"
+    required:
+      - path
+      - content
+    properties:
+      path:
+        type: string
+        pattern: "^[a-zA-Z0-9_/.\\-]+$"
+      content:
+        type: string
+        maxLength: 100000
+
+  web_search:
+    description: "Search the web"
+    required:
+      - query
+    properties:
+      query:
+        type: string
+        maxLength: 500
+      max_results:
+        type: integer
+        minimum: 1
+        maximum: 10
+
+  calculator:
+    description: "Perform calculations"
+    required:
+      - expression
+    properties:
+      expression:
+        type: string
+        pattern: "^[0-9+\\-*/().\\s]+$"

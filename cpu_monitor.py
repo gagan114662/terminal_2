@@ -1,5 +1,3 @@
-import time
-
 import psutil
 
 print("Monitoring CPU usage for 5 seconds...")

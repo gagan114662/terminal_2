@@ -3,7 +3,6 @@ import json
 import os
 import signal
 import sys
-import time
 
 ART_DIR = os.environ.get("VERIFY_ART_DIR", "artifacts")
 THRESH = {
@@ -18,7 +17,7 @@ MAX_SEC = int(os.environ.get("VERIFY_MAX_SECONDS", "40"))
 
 def load_json(path):
     try:
-        with open(path, "r") as f:
+        with open(path) as f:
             return json.load(f)
     except:
         return {}

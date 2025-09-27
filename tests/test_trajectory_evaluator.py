@@ -9,9 +9,12 @@ from datetime import datetime
 
 import pytest
 
-from termnet.trajectory_evaluator import (Step, StepPhase, Trajectory,
-                                          TrajectoryEvaluator,
-                                          TrajectoryStatus)
+from termnet.trajectory_evaluator import (
+    Step,
+    StepPhase,
+    TrajectoryEvaluator,
+    TrajectoryStatus,
+)
 
 
 @pytest.fixture
@@ -158,11 +161,13 @@ def test_golden_trajectory(temp_db):
     for i in range(3):
         step = Step(
             step_index=i,
-            phase=StepPhase.THINK
-            if i % 3 == 0
-            else StepPhase.ACT
-            if i % 3 == 1
-            else StepPhase.OBSERVE,
+            phase=(
+                StepPhase.THINK
+                if i % 3 == 0
+                else StepPhase.ACT
+                if i % 3 == 1
+                else StepPhase.OBSERVE
+            ),
             timestamp=datetime.now().isoformat(),
             latency_ms=100,
         )
@@ -181,11 +186,13 @@ def test_golden_trajectory(temp_db):
     for i in range(3):
         step = Step(
             step_index=i,
-            phase=StepPhase.THINK
-            if i % 3 == 0
-            else StepPhase.ACT
-            if i % 3 == 1
-            else StepPhase.OBSERVE,
+            phase=(
+                StepPhase.THINK
+                if i % 3 == 0
+                else StepPhase.ACT
+                if i % 3 == 1
+                else StepPhase.OBSERVE
+            ),
             timestamp=datetime.now().isoformat(),
             latency_ms=120,  # Slightly slower
         )

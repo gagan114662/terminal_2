@@ -24,15 +24,17 @@ async def verify_all_fixes():
     print("\n1. Testing all imports...")
     try:
         from termnet.agent import TermNetAgent
-        from termnet.memory import ConversationMemory
         from termnet.safety import SafetyChecker
         from termnet.toolloader import ToolLoader
         from termnet.tools.browsersearch import BrowserSearchTool
         from termnet.tools.scratchpad import ScratchpadTool
         from termnet.tools.terminal import TerminalSession, TerminalTool
-        from termnet.trajectory_evaluator import (Step, StepPhase,
-                                                  TrajectoryEvaluator,
-                                                  TrajectoryStatus)
+        from termnet.trajectory_evaluator import (
+            Step,
+            StepPhase,
+            TrajectoryEvaluator,
+            TrajectoryStatus,
+        )
         from termnet.trend_analysis import TrendAnalyzer
 
         print("   ✅ All imports successful")

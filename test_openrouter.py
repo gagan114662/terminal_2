@@ -46,7 +46,7 @@ async def test_openrouter():
             elif tag == "TOOL":
                 print(f"\n🔧 Tool call: {chunk}")
 
-        print(f"\n\n✅ Test completed successfully!")
+        print("\n\n✅ Test completed successfully!")
         print(f"📋 Response length: {len(response_text)} characters")
 
         return True

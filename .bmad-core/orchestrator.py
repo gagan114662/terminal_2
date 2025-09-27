@@ -6,7 +6,7 @@ Part of BMAD-METHOD autonomous development system
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agent_loader import AgentLoader
 
@@ -131,7 +131,7 @@ class BMADOrchestrator:
                 print(f"❌ Error getting response from {agent_name} agent: {e}")
                 return False
 
-        print(f"\n🎉 AUTOMATED WORKFLOW COMPLETED!")
+        print("\n🎉 AUTOMATED WORKFLOW COMPLETED!")
         print("=" * 60)
         print("📊 Final Status:")
         status = self.get_workflow_status()
@@ -158,7 +158,7 @@ class BMADOrchestrator:
             f"Continue with the next phase of development for '{original_request}'.",
         )
 
-    def build_agent_context(self, current_agent: str) -> Dict[str, str]:
+    def build_agent_context(self, current_agent: str) -> dict[str, str]:
         """Build context from previous agent outputs for the current agent"""
         context = {
             "project_context": self.project_context.get("description", ""),
@@ -197,7 +197,7 @@ class BMADOrchestrator:
         return context
 
     def get_agent_prompt(
-        self, agent: Any, request: str, context: Dict[str, str]
+        self, agent: Any, request: str, context: dict[str, str]
     ) -> str:
         """Get specialized prompt for an agent"""
         if hasattr(agent, "get_specialized_prompt"):
@@ -220,14 +220,7 @@ class BMADOrchestrator:
                     context.get("architecture_output", ""),
                     context.get("project_context", ""),
                 )
-            elif agent.role == "qa":
-                return agent.get_specialized_prompt(
-                    request,
-                    context.get("code_output", ""),
-                    context.get("requirements", ""),
-                    context.get("project_context", ""),
-                )
-            elif agent.role == "validator":
+            elif agent.role == "qa" or agent.role == "validator":
                 return agent.get_specialized_prompt(
                     request,
                     context.get("code_output", ""),
@@ -265,14 +258,14 @@ class BMADOrchestrator:
         except ValueError:
             return -1
 
-    def suggest_next_agent(self) -> Optional[str]:
+    def suggest_next_agent(self) -> str | None:
         """Suggest the next agent in the workflow based on completed agents"""
         for agent in self.standard_workflow:
             if agent not in self.agent_outputs:
                 return agent
         return None
 
-    def get_workflow_status(self) -> Dict[str, Any]:
+    def get_workflow_status(self) -> dict[str, Any]:
         """Get current workflow status"""
         completed = list(self.agent_outputs.keys())
         next_agent = self.suggest_next_agent()
@@ -310,7 +303,7 @@ class BMADOrchestrator:
         filepath = f".bmad-core/{filename}"
         if os.path.exists(filepath):
             try:
-                with open(filepath, "r") as f:
+                with open(filepath) as f:
                     state = json.load(f)
 
                 self.workflow_state = state.get("workflow_state", {})

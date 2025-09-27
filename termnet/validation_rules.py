@@ -3,14 +3,15 @@ ValidationRules - Standard validation rules for TermNet projects
 """
 
 import ast
-import json
-import os
-import subprocess
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
-from termnet.validation_engine import (ValidationResult, ValidationRule,
-                                       ValidationSeverity, ValidationStatus)
+from termnet.validation_engine import (
+    ValidationResult,
+    ValidationRule,
+    ValidationSeverity,
+    ValidationStatus,
+)
 
 
 class PythonSyntaxValidation(ValidationRule):
@@ -24,7 +25,7 @@ class PythonSyntaxValidation(ValidationRule):
         )
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         python_files = list(Path(project_path).rglob("*.py"))
 
@@ -40,7 +41,7 @@ class PythonSyntaxValidation(ValidationRule):
 
         for py_file in python_files:
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Parse the Python syntax
@@ -78,18 +79,18 @@ class RequirementsValidation(ValidationRule):
             severity=ValidationSeverity.HIGH,
         )
 
-    def should_run(self, context: Dict[str, Any]) -> bool:
+    def should_run(self, context: dict[str, Any]) -> bool:
         project_path = context.get("project_path", "")
         return Path(project_path).joinpath("requirements.txt").exists()
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         requirements_file = Path(project_path) / "requirements.txt"
 
         try:
             # Read requirements
-            with open(requirements_file, "r") as f:
+            with open(requirements_file) as f:
                 requirements = f.read().strip().split("\n")
 
             # Filter out empty lines and comments
@@ -154,7 +155,7 @@ class ApplicationStartupValidation(ValidationRule):
         )
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         # Look for common application entry points
         entry_points = ["app.py", "main.py", "run.py", "server.py"]
@@ -220,13 +221,13 @@ class FlaskApplicationValidation(ValidationRule):
             severity=ValidationSeverity.MEDIUM,
         )
 
-    def should_run(self, context: Dict[str, Any]) -> bool:
+    def should_run(self, context: dict[str, Any]) -> bool:
         project_path = context.get("project_path", "")
 
         # Check if Flask is mentioned in requirements or code
         requirements_path = Path(project_path) / "requirements.txt"
         if requirements_path.exists():
-            with open(requirements_path, "r") as f:
+            with open(requirements_path) as f:
                 content = f.read()
                 if "flask" in content.lower():
                     return True
@@ -234,7 +235,7 @@ class FlaskApplicationValidation(ValidationRule):
         # Check for Flask imports in Python files
         for py_file in Path(project_path).rglob("*.py"):
             try:
-                with open(py_file, "r") as f:
+                with open(py_file) as f:
                     content = f.read()
                     if "from flask import" in content or "import flask" in content:
                         return True
@@ -244,7 +245,7 @@ class FlaskApplicationValidation(ValidationRule):
         return False
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         try:
             from termnet.tools.terminal import TerminalSession
@@ -269,7 +270,7 @@ class FlaskApplicationValidation(ValidationRule):
             app_files = []
             for py_file in Path(project_path).rglob("*.py"):
                 try:
-                    with open(py_file, "r") as f:
+                    with open(py_file) as f:
                         content = f.read()
                         if "Flask(__name__)" in content or "app = Flask" in content:
                             app_files.append(py_file.name)
@@ -313,7 +314,7 @@ class DatabaseValidation(ValidationRule):
             severity=ValidationSeverity.MEDIUM,
         )
 
-    def should_run(self, context: Dict[str, Any]) -> bool:
+    def should_run(self, context: dict[str, Any]) -> bool:
         project_path = context.get("project_path", "")
 
         # Check for database-related files or imports
@@ -331,7 +332,7 @@ class DatabaseValidation(ValidationRule):
         # Check requirements.txt
         requirements_path = Path(project_path) / "requirements.txt"
         if requirements_path.exists():
-            with open(requirements_path, "r") as f:
+            with open(requirements_path) as f:
                 content = f.read().lower()
                 if any(indicator in content for indicator in db_indicators):
                     return True
@@ -339,7 +340,7 @@ class DatabaseValidation(ValidationRule):
         # Check Python files for database imports
         for py_file in Path(project_path).rglob("*.py"):
             try:
-                with open(py_file, "r") as f:
+                with open(py_file) as f:
                     content = f.read().lower()
                     if any(indicator in content for indicator in db_indicators):
                         return True
@@ -349,7 +350,7 @@ class DatabaseValidation(ValidationRule):
         return False
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         try:
             findings = []
@@ -367,7 +368,7 @@ class DatabaseValidation(ValidationRule):
             orm_imports = []
             for py_file in Path(project_path).rglob("*.py"):
                 try:
-                    with open(py_file, "r") as f:
+                    with open(py_file) as f:
                         content = f.read()
                         if (
                             "from sqlalchemy import" in content

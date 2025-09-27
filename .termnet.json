@@ -1,0 +1,22 @@
+{
+  "max_tasks_per_run": 5,
+  "require_tests": true,
+  "auto_push": false,
+  "auto_create_pr": false,
+  "safety_checks": true,
+  "backup_enabled": false,
+  "dry_run": true,
+  "base_branch": "main",
+  "allowed_paths": [
+    "**/*.py",
+    "**/*.js",
+    "**/*.ts",
+    "**/*.md"
+  ],
+  "blocked_paths": [
+    ".git/**",
+    "__pycache__/**",
+    "*.pyc",
+    "node_modules/**"
+  ]
+}

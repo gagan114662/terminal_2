@@ -1,6 +1,6 @@
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class StepType:
@@ -15,23 +15,23 @@ class StepType:
 class MemoryStep:
     step_type: str
     content: str
-    context: Dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
     timestamp: float = field(default_factory=time.time)
     success: bool = True
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class ConversationMemory:
     """Lightweight conversation memory for test compatibility"""
 
     def __init__(self):
-        self.history: List[Tuple[str, str]] = []
+        self.history: list[tuple[str, str]] = []
 
     def add(self, role: str, text: str) -> None:
         """Add a conversation entry"""
         self.history.append((role, text))
 
-    def get_history(self, limit: Optional[int] = None) -> List[Tuple[str, str]]:
+    def get_history(self, limit: int | None = None) -> list[tuple[str, str]]:
         """Get conversation history, optionally limited"""
         if limit is None:
             return self.history.copy()

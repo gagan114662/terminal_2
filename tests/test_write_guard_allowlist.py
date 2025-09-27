@@ -1,7 +1,6 @@
 """Test write guard allowlist enforcement."""
 
 import json
-import os
 from pathlib import Path
 
 

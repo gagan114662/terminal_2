@@ -1,6 +1,6 @@
 # TermNet
 
-TermNet is an **AI-powered terminal assistant** that connects a Large Language Model (LLM) with shell command execution, browser search, and dynamically loaded tools.  
+TermNet is an **AI-powered terminal assistant** that connects a Large Language Model (LLM) with shell command execution, browser search, and dynamically loaded tools.
 It streams responses in real-time, executes tools one at a time, and maintains conversational memory across steps.
 
 ⚠️ **Disclaimer:** This project is experimental. **Use at your own risk.**
@@ -339,5 +339,5 @@ TERMNET_ENFORCE_SLO=true python -m pytest tests/test_slo_guard_pytest.py
 
 ## 📜 License
 
-This project is licensed under the MIT License.  
+This project is licensed under the MIT License.
 See LICENSE for details.

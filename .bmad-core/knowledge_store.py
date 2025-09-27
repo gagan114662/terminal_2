@@ -7,7 +7,7 @@ import hashlib
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class CodebaseInsight:
@@ -34,8 +34,8 @@ class KnowledgeStore:
 
     def __init__(self, store_path: str = ".bmad-core/knowledge"):
         self.store_path = store_path
-        self.insights: Dict[str, CodebaseInsight] = {}
-        self.patterns: Dict[str, Any] = {}
+        self.insights: dict[str, CodebaseInsight] = {}
+        self.patterns: dict[str, Any] = {}
         self.project_metadata = {}
 
         # Ensure store directory exists
@@ -49,7 +49,7 @@ class KnowledgeStore:
         insight_type: str,
         content: str,
         source_file: str = "",
-        tags: List[str] = None,
+        tags: list[str] = None,
     ) -> str:
         """Add a new insight to the knowledge store"""
         insight = CodebaseInsight(insight_type, content, source_file)
@@ -64,7 +64,7 @@ class KnowledgeStore:
         print(f"💡 Added insight: {insight_type} ({insight.id})")
         return insight.id
 
-    def add_pattern(self, pattern_name: str, pattern_data: Dict[str, Any]):
+    def add_pattern(self, pattern_name: str, pattern_data: dict[str, Any]):
         """Add a code pattern to the store"""
         self.patterns[pattern_name] = {
             "data": pattern_data,
@@ -75,7 +75,7 @@ class KnowledgeStore:
 
     def search_insights(
         self, query: str, insight_type: str = None
-    ) -> List[CodebaseInsight]:
+    ) -> list[CodebaseInsight]:
         """Search insights by content or type"""
         results = []
         query_lower = query.lower()
@@ -93,7 +93,7 @@ class KnowledgeStore:
 
         return results
 
-    def get_insights_by_type(self, insight_type: str) -> List[CodebaseInsight]:
+    def get_insights_by_type(self, insight_type: str) -> list[CodebaseInsight]:
         """Get all insights of a specific type"""
         return [
             insight
@@ -101,7 +101,7 @@ class KnowledgeStore:
             if insight.type == insight_type
         ]
 
-    def analyze_codebase(self, project_path: str) -> Dict[str, Any]:
+    def analyze_codebase(self, project_path: str) -> dict[str, Any]:
         """Analyze codebase and extract insights"""
         analysis = {
             "files_analyzed": 0,
@@ -128,7 +128,7 @@ class KnowledgeStore:
 
                     # Simple analysis - count lines and look for patterns
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
                             lines = content.split("\n")
                             analysis["total_lines"] += len(lines)
@@ -152,7 +152,7 @@ class KnowledgeStore:
                             if "def " in content and "async def" in content:
                                 self.add_insight(
                                     "async_pattern",
-                                    f"File uses both sync and async functions",
+                                    "File uses both sync and async functions",
                                     relative_path,
                                     ["python", "async", "pattern"],
                                 )
@@ -173,7 +173,7 @@ class KnowledgeStore:
                                         ["python", "dependencies"],
                                     )
 
-                    except Exception as e:
+                    except Exception:
                         continue
 
                 analysis["files_analyzed"] += 1
@@ -208,7 +208,7 @@ class KnowledgeStore:
         insights_file = f"{self.store_path}/insights.json"
         if os.path.exists(insights_file):
             try:
-                with open(insights_file, "r") as f:
+                with open(insights_file) as f:
                     insights_data = json.load(f)
 
                 for insight_id, data in insights_data.items():
@@ -228,13 +228,13 @@ class KnowledgeStore:
         patterns_file = f"{self.store_path}/patterns.json"
         if os.path.exists(patterns_file):
             try:
-                with open(patterns_file, "r") as f:
+                with open(patterns_file) as f:
                     self.patterns = json.load(f)
                 print(f"🔄 Loaded {len(self.patterns)} patterns")
             except Exception as e:
                 print(f"⚠️ Error loading patterns: {e}")
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Get summary of knowledge store"""
         insight_types = {}
         for insight in self.insights.values():

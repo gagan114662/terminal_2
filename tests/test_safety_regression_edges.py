@@ -19,7 +19,8 @@ def test_allow_some_file_operations():
 
 
 @pytest.mark.parametrize(
-    "url", ["file:///etc/passwd"]  # Only this one is actually blocked
+    "url",
+    ["file:///etc/passwd"],  # Only this one is actually blocked
 )
 def test_block_dangerous_urls(url):
     s = SafetyChecker()

@@ -6,7 +6,7 @@ Manages shared context, memory, and data flow between BMAD agents
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class AgentContext:
@@ -37,11 +37,11 @@ class ContextManager:
 
     def __init__(self):
         self.project_context = {}
-        self.agent_contexts: Dict[str, AgentContext] = {}
+        self.agent_contexts: dict[str, AgentContext] = {}
         self.shared_memory = {}
         self.context_file = ".bmad-core/agent_context.json"
 
-    def initialize_project(self, project_data: Dict[str, Any]):
+    def initialize_project(self, project_data: dict[str, Any]):
         """Initialize project-wide context"""
         self.project_context.update(project_data)
         self.project_context["initialized_at"] = datetime.now().isoformat()
@@ -54,7 +54,7 @@ class ContextManager:
         return self.agent_contexts[agent_name]
 
     def pass_data_to_agent(
-        self, target_agent: str, source_agent: str, data: Dict[str, Any]
+        self, target_agent: str, source_agent: str, data: dict[str, Any]
     ):
         """Pass data from one agent to another"""
         target_context = self.get_agent_context(target_agent)
@@ -64,7 +64,7 @@ class ContextManager:
 
         print(f"🔄 Data passed: {source_agent} → {target_agent} ({len(data)} items)")
 
-    def store_agent_output(self, agent_name: str, output_data: Dict[str, Any]):
+    def store_agent_output(self, agent_name: str, output_data: dict[str, Any]):
         """Store output from an agent"""
         agent_context = self.get_agent_context(agent_name)
 
@@ -75,7 +75,7 @@ class ContextManager:
         self.shared_memory[f"{agent_name}_output"] = output_data
         print(f"💾 Stored output from {agent_name}")
 
-    def get_relevant_context(self, agent_name: str) -> Dict[str, Any]:
+    def get_relevant_context(self, agent_name: str) -> dict[str, Any]:
         """Get all relevant context for an agent"""
         context = {
             "project": self.project_context,
@@ -128,7 +128,7 @@ class ContextManager:
             return False
 
         try:
-            with open(self.context_file, "r") as f:
+            with open(self.context_file) as f:
                 context_data = json.load(f)
 
             self.project_context = context_data.get("project_context", {})
@@ -150,7 +150,7 @@ class ContextManager:
             print(f"❌ Error loading context: {e}")
             return False
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Get summary of current context state"""
         return {
             "project_name": self.project_context.get("name", "Unknown"),

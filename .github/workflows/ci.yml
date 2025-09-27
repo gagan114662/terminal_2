@@ -18,12 +18,12 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Cache pip packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
@@ -35,6 +35,21 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Run pre-commit hooks
+      run: |
+        pip install pre-commit
+        # Run pre-commit and allow formatting changes
+        pre-commit run --all-files || true
+        # Check if there are still any uncommitted changes after formatting
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "❌ Pre-commit hooks made changes but they weren't committed:"
+          git status --porcelain
+          echo "Please run 'pre-commit run --all-files' locally and commit the changes"
+          exit 1
+        else
+          echo "✅ All pre-commit hooks passed without making changes"
+        fi
 
     - name: Lint with ruff (fallback to flake8)
       run: |
@@ -54,7 +69,7 @@ jobs:
 
     - name: Upload coverage as artifact
       if: matrix.python-version == '3.12'  # Only upload once
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: .coverage

@@ -4,9 +4,6 @@ import json
 import sys
 import time
 from datetime import datetime
-from typing import Dict, List, Tuple
-
-import aiohttp
 
 from termnet.bmad_integration import BMADIntegration
 from termnet.claude_code_client import ClaudeCodeClient
@@ -18,15 +15,19 @@ try:
     from termnet.openrouter_client import OpenRouterClient
 except ImportError:
     OpenRouterClient = None
-from termnet.trajectory_evaluator import (Step, StepPhase, TrajectoryEvaluator,
-                                          TrajectoryStatus)
+from termnet.trajectory_evaluator import (
+    Step,
+    StepPhase,
+    TrajectoryEvaluator,
+    TrajectoryStatus,
+)
 
 
 class TermNetAgent:
     def __init__(self, terminal):
         self.terminal = terminal
         self.session_id = hashlib.md5(str(time.time()).encode()).hexdigest()[:8]
-        self.cache: Dict[str, Tuple[float, str, int, bool]] = {}
+        self.cache: dict[str, tuple[float, str, int, bool]] = {}
         self.current_goal = ""
 
         # 🔌 Load tools dynamically
@@ -96,7 +97,7 @@ Examples for macOS:
 - User asks "list files" → Execute: <|start|>assistant<|channel|>commentary to=terminal_execute <|constrain|>json<|message|>{"cmd":["ls -la"]}<|call|>
 """
 
-        self.conversation_history: List[Dict[str, str]] = [
+        self.conversation_history: list[dict[str, str]] = [
             {"role": "system", "content": system_prompt}
         ]
 
@@ -154,7 +155,9 @@ Examples for macOS:
                 method = getattr(tool_instance, "execute_command", None)
                 if method and "command" not in args and len(args) == 0:
                     # If no command provided, ask for it
-                    obs = "❌ No command specified. Please provide a command to execute."
+                    obs = (
+                        "❌ No command specified. Please provide a command to execute."
+                    )
                 elif method:
                     # Ensure command argument is provided
                     command = args.get("command", "")
@@ -247,7 +250,7 @@ Examples for macOS:
     # -----------------------------
     # LLM
     # -----------------------------
-    async def _llm_chat_stream(self, tools: List[Dict]):
+    async def _llm_chat_stream(self, tools: list[dict]):
         """Stream responses from the LLM (Claude Code, OpenRouter, or Ollama)."""
 
         # Priority 1: Use Claude Code CLI if available
@@ -300,9 +303,9 @@ Examples for macOS:
                     goal, self._execute_claude_chat
                 )
                 if success:
-                    print(f"\n✅ Automated workflow completed successfully!")
+                    print("\n✅ Automated workflow completed successfully!")
                 else:
-                    print(f"\n❌ Automated workflow failed")
+                    print("\n❌ Automated workflow failed")
                 return
             else:
                 # Single agent execution
@@ -368,9 +371,11 @@ Examples for macOS:
                                         "type": "function",
                                         "function": {
                                             "name": name,
-                                            "arguments": json.dumps(args)
-                                            if isinstance(args, dict)
-                                            else str(args),
+                                            "arguments": (
+                                                json.dumps(args)
+                                                if isinstance(args, dict)
+                                                else str(args)
+                                            ),
                                         },
                                     }
                                 ],
@@ -473,7 +478,7 @@ Examples for macOS:
         ]
         return any(marker in chunk for marker in gpt_oss_markers)
 
-    def _parse_gpt_oss_tool_calls(self, text: str) -> List[Dict]:
+    def _parse_gpt_oss_tool_calls(self, text: str) -> list[dict]:
         """Parse GPT-OSS tool calls from text content"""
         import re
 
@@ -573,7 +578,7 @@ Examples for macOS:
                     }
                 )
 
-            except Exception as e:
+            except Exception:
                 continue
 
         return tool_calls

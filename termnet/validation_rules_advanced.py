@@ -4,14 +4,16 @@ Project-specific and technology-specific validation rules
 """
 
 import json
-import os
 import re
-import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from termnet.validation_engine import (ValidationResult, ValidationRule,
-                                       ValidationSeverity, ValidationStatus)
+from termnet.validation_engine import (
+    ValidationResult,
+    ValidationRule,
+    ValidationSeverity,
+    ValidationStatus,
+)
 
 
 class ReactApplicationValidation(ValidationRule):
@@ -24,14 +26,14 @@ class ReactApplicationValidation(ValidationRule):
             severity=ValidationSeverity.HIGH,
         )
 
-    def should_run(self, context: Dict[str, Any]) -> bool:
+    def should_run(self, context: dict[str, Any]) -> bool:
         project_path = context.get("project_path", "")
 
         # Check for React indicators
         package_json = Path(project_path) / "package.json"
         if package_json.exists():
             try:
-                with open(package_json, "r") as f:
+                with open(package_json) as f:
                     data = json.load(f)
                     deps = {
                         **data.get("dependencies", {}),
@@ -44,7 +46,7 @@ class ReactApplicationValidation(ValidationRule):
         return False
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         try:
             from termnet.tools.terminal import TerminalSession
@@ -68,7 +70,7 @@ class ReactApplicationValidation(ValidationRule):
             # Check for build script
             package_json = Path(project_path) / "package.json"
             if package_json.exists():
-                with open(package_json, "r") as f:
+                with open(package_json) as f:
                     data = json.load(f)
                     scripts = data.get("scripts", {})
                     if "build" not in scripts:
@@ -108,14 +110,14 @@ class DockerValidation(ValidationRule):
             severity=ValidationSeverity.MEDIUM,
         )
 
-    def should_run(self, context: Dict[str, Any]) -> bool:
+    def should_run(self, context: dict[str, Any]) -> bool:
         project_path = context.get("project_path", "")
         return (Path(project_path) / "Dockerfile").exists() or (
             Path(project_path) / "docker-compose.yml"
         ).exists()
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         try:
             from termnet.tools.terminal import TerminalSession
@@ -139,7 +141,7 @@ class DockerValidation(ValidationRule):
             # Validate Dockerfile syntax
             dockerfile = Path(project_path) / "Dockerfile"
             if dockerfile.exists():
-                with open(dockerfile, "r") as f:
+                with open(dockerfile) as f:
                     content = f.read()
                     if not content.strip().startswith("FROM"):
                         return ValidationResult(
@@ -152,7 +154,7 @@ class DockerValidation(ValidationRule):
 
             # Test docker build (dry run)
             if dockerfile.exists():
-                cmd = f"docker build --dry-run -f Dockerfile ."
+                cmd = "docker build --dry-run -f Dockerfile ."
                 output, exit_code, success = await terminal.execute_command(cmd)
 
                 if exit_code != 0 and "no such file or directory" not in output.lower():
@@ -192,13 +194,13 @@ class APIEndpointValidation(ValidationRule):
             severity=ValidationSeverity.HIGH,
         )
 
-    def should_run(self, context: Dict[str, Any]) -> bool:
+    def should_run(self, context: dict[str, Any]) -> bool:
         project_path = context.get("project_path", "")
 
         # Check for API indicators
         for py_file in Path(project_path).rglob("*.py"):
             try:
-                with open(py_file, "r") as f:
+                with open(py_file) as f:
                     content = f.read()
                     if any(
                         pattern in content
@@ -216,7 +218,7 @@ class APIEndpointValidation(ValidationRule):
         return False
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         try:
             from termnet.tools.terminal import TerminalSession
@@ -227,7 +229,7 @@ class APIEndpointValidation(ValidationRule):
             endpoints = []
             for py_file in Path(project_path).rglob("*.py"):
                 try:
-                    with open(py_file, "r") as f:
+                    with open(py_file) as f:
                         content = f.read()
                         # Flask route pattern
                         flask_routes = re.findall(
@@ -295,7 +297,7 @@ class SecurityValidation(ValidationRule):
         )
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         try:
             security_issues = []
@@ -310,7 +312,7 @@ class SecurityValidation(ValidationRule):
 
             for py_file in Path(project_path).rglob("*.py"):
                 try:
-                    with open(py_file, "r") as f:
+                    with open(py_file) as f:
                         content = f.read()
                         for pattern in secret_patterns:
                             if re.search(pattern, content, re.IGNORECASE):
@@ -328,7 +330,7 @@ class SecurityValidation(ValidationRule):
 
             for py_file in Path(project_path).rglob("*.py"):
                 try:
-                    with open(py_file, "r") as f:
+                    with open(py_file) as f:
                         content = f.read()
                         for pattern in sql_patterns:
                             if re.search(pattern, content):
@@ -341,7 +343,7 @@ class SecurityValidation(ValidationRule):
             # Check for debug mode in production
             for py_file in Path(project_path).rglob("*.py"):
                 try:
-                    with open(py_file, "r") as f:
+                    with open(py_file) as f:
                         content = f.read()
                         if "debug=True" in content or "DEBUG = True" in content:
                             security_issues.append(
@@ -385,7 +387,7 @@ class TestCoverageValidation(ValidationRule):
             severity=ValidationSeverity.MEDIUM,
         )
 
-    def should_run(self, context: Dict[str, Any]) -> bool:
+    def should_run(self, context: dict[str, Any]) -> bool:
         project_path = context.get("project_path", "")
 
         # Check for test files
@@ -396,7 +398,7 @@ class TestCoverageValidation(ValidationRule):
         return False
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         try:
             from termnet.tools.terminal import TerminalSession

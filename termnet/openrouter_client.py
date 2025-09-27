@@ -3,10 +3,9 @@ OpenRouter API client for TermNet integration
 Replaces Ollama with OpenRouter for cloud-based LLM access
 """
 
-import asyncio
 import json
 import time
-from typing import AsyncGenerator, Dict, List, Tuple
+from collections.abc import AsyncGenerator
 
 import aiohttp
 
@@ -25,10 +24,10 @@ class OpenRouterClient:
     async def chat_stream(
         self,
         model: str,
-        messages: List[Dict],
-        tools: List[Dict] = None,
+        messages: list[dict],
+        tools: list[dict] = None,
         temperature: float = 0.7,
-    ) -> AsyncGenerator[Tuple[str, any], None]:
+    ) -> AsyncGenerator[tuple[str, any], None]:
         """
         Stream chat responses from OpenRouter API
         Yields tuples of (type, content) where type is 'CONTENT' or 'TOOL'
@@ -85,7 +84,9 @@ class OpenRouterClient:
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        print(f"❌ OpenRouter API error {response.status}: {error_text}")
+                        print(
+                            f"❌ OpenRouter API error {response.status}: {error_text}"
+                        )
                         yield ("CONTENT", f"API Error: {error_text}")
                         return
 
@@ -230,7 +231,7 @@ class OpenRouterClient:
 
         return any(supported in model for supported in tool_supported_models)
 
-    async def get_available_models(self) -> List[Dict]:
+    async def get_available_models(self) -> list[dict]:
         """Get list of available models from OpenRouter"""
         try:
             async with aiohttp.ClientSession(headers=self.headers) as session:

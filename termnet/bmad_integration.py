@@ -5,7 +5,6 @@ Integrates BMAD-METHOD autonomous development system with TermNet
 
 import os
 import sys
-from typing import Optional, Tuple
 
 # Add the .bmad-core directory to Python path
 sys.path.insert(0, ".bmad-core")
@@ -45,7 +44,7 @@ class BMADIntegration:
         is_cmd, _ = self.orchestrator.agent_loader.is_agent_command(user_input)
         return is_cmd
 
-    def process_bmad_command(self, user_input: str) -> Tuple[bool, str]:
+    def process_bmad_command(self, user_input: str) -> tuple[bool, str]:
         """Process BMAD agent commands and return specialized prompt"""
         if not self.enabled or not self.orchestrator:
             return False, "BMAD-METHOD not available"

@@ -3,7 +3,6 @@
 import json
 import statistics
 from pathlib import Path
-from typing import Any, Dict, List
 
 
 def test_slo_threshold():

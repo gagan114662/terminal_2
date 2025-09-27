@@ -9,7 +9,7 @@ import sqlite3
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class StepPhase(Enum):
@@ -33,14 +33,14 @@ class Step:
     phase: StepPhase
     timestamp: str
     latency_ms: int
-    tool_name: Optional[str] = None
-    tool_args: Optional[Dict[str, Any]] = None
-    output_snippet: Optional[str] = None
-    error: Optional[str] = None
-    tokens_in: Optional[int] = None  # TODO: Hook into Claude client
-    tokens_out: Optional[int] = None  # TODO: Hook into Claude client
-    rationale_summary: Optional[str] = None
-    evidence_refs: Optional[List[Dict[str, str]]] = None
+    tool_name: str | None = None
+    tool_args: dict[str, Any] | None = None
+    output_snippet: str | None = None
+    error: str | None = None
+    tokens_in: int | None = None  # TODO: Hook into Claude client
+    tokens_out: int | None = None  # TODO: Hook into Claude client
+    rationale_summary: str | None = None
+    evidence_refs: list[dict[str, str]] | None = None
 
     def to_dict(self):
         data = asdict(self)
@@ -54,14 +54,14 @@ class Trajectory:
 
     request_id: str
     started_at: str
-    ended_at: Optional[str] = None
+    ended_at: str | None = None
     status: TrajectoryStatus = TrajectoryStatus.IN_PROGRESS
     model: str = "claude-3-5-sonnet"
-    tags: List[str] = None
+    tags: list[str] = None
     total_steps: int = 0
     total_latency_ms: int = 0
     react_cycles: int = 0
-    tools_used: Dict[str, int] = None
+    tools_used: dict[str, int] = None
 
     def __post_init__(self):
         if self.tags is None:
@@ -82,7 +82,7 @@ class TrajectoryEvaluator:
         self.db_path = db_path
         self._persistent_conn = None  # For in-memory databases
         self._init_schema()  # Always call schema init unconditionally
-        self.active_trajectories: Dict[str, List[Step]] = {}
+        self.active_trajectories: dict[str, list[Step]] = {}
 
     def _init_schema(self):
         """Initialize SQLite tables with correct schema"""
@@ -191,7 +191,7 @@ class TrajectoryEvaluator:
         """Cleanup persistent connections on object destruction"""
         self.close()
 
-    def start_trajectory(self, request_id: str, tags: List[str] = None) -> Trajectory:
+    def start_trajectory(self, request_id: str, tags: list[str] = None) -> Trajectory:
         """Start tracking a new trajectory"""
         trajectory = Trajectory(
             request_id=request_id,
@@ -335,7 +335,7 @@ class TrajectoryEvaluator:
 
             conn.commit()
 
-    def compare_to_golden(self, request_id: str, label: str) -> Dict[str, Any]:
+    def compare_to_golden(self, request_id: str, label: str) -> dict[str, Any]:
         """Compare trajectory to golden reference"""
         with self._get_connection() as conn:
             # Get golden trajectory steps
@@ -412,7 +412,7 @@ class TrajectoryEvaluator:
                 "verdict": "PASS" if sequence_match and max_ratio <= 1.2 else "FAIL",
             }
 
-    def get_trajectory(self, request_id: str) -> Dict[str, Any]:
+    def get_trajectory(self, request_id: str) -> dict[str, Any]:
         """Get full trajectory with steps"""
         with self._get_connection() as conn:
             # Get trajectory

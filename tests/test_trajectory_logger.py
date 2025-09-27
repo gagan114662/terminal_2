@@ -1,6 +1,4 @@
 import json
-import os
-from pathlib import Path
 
 from termnet.trajectory_logger import TrajectoryStep, log_step, now_iso
 

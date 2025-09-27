@@ -10,14 +10,12 @@ import json
 import os
 import sys
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from termnet.validation_engine import (ValidationEngine, ValidationLevel,
-                                       ValidationRule)
+from termnet.validation_engine import ValidationEngine, ValidationLevel, ValidationRule
 
 
 @dataclass
@@ -36,7 +34,7 @@ class SecurityValidationRule(ValidationRule):
 class SecurityValidationEngine:
     """Integration between security scanning and validation engine"""
 
-    def __init__(self, validation_engine: Optional[ValidationEngine] = None):
+    def __init__(self, validation_engine: ValidationEngine | None = None):
         self.validation_engine = validation_engine or ValidationEngine()
         self.setup_security_rules()
 
@@ -110,7 +108,7 @@ class SecurityValidationEngine:
             )
         )
 
-    def validate_security_scan(self, scan_report: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_security_scan(self, scan_report: dict[str, Any]) -> dict[str, Any]:
         """Validate security scan results against rules"""
 
         validation_results = {
@@ -183,8 +181,8 @@ class SecurityValidationEngine:
         return validation_results
 
     def create_security_receipt(
-        self, scan_report: Dict[str, Any], validation_results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, scan_report: dict[str, Any], validation_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Create cryptographically signed validation receipt"""
 
         receipt = {
@@ -220,7 +218,7 @@ class SecurityValidationEngine:
 
         return receipt
 
-    def integrate_with_termnet(self, scan_report: Dict[str, Any]) -> Dict[str, Any]:
+    def integrate_with_termnet(self, scan_report: dict[str, Any]) -> dict[str, Any]:
         """Full integration with TermNet validation system"""
 
         print("🔐 Validating security scan results...")
@@ -290,7 +288,7 @@ def main():
     # Integrate with TermNet
     receipt = engine.integrate_with_termnet(sample_report)
 
-    print(f"\n📋 Receipt Summary:")
+    print("\n📋 Receipt Summary:")
     print(f"   Receipt ID: {receipt['receipt_id']}")
     print(f"   Validation Status: {receipt['validation']['status']}")
     print(f"   Signature: {receipt['signature'][:16]}...")

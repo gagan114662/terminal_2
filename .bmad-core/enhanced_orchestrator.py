@@ -8,13 +8,13 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from code_analyzer import CodeAnalyzer
 from orchestrator import BMADOrchestrator
 from rag_processor import RAGProcessor
 from react_framework import ReActFramework
-from task_analyzer import TaskAnalyzer, TaskComplexity
+from task_analyzer import TaskAnalyzer
 
 
 class EnhancedBMADOrchestrator(BMADOrchestrator):
@@ -29,7 +29,7 @@ class EnhancedBMADOrchestrator(BMADOrchestrator):
         self.current_complexity = None
         print("🧠 Enhanced BMAD Orchestrator with ReAct + Agentic RAG initialized")
 
-    def analyze_and_plan(self, task_description: str) -> Dict[str, Any]:
+    def analyze_and_plan(self, task_description: str) -> dict[str, Any]:
         """Analyze task and create execution plan with RAG insights"""
         # Analyze task complexity
         complexity, recommended_workflow = self.task_analyzer.analyze_task(
@@ -58,7 +58,7 @@ class EnhancedBMADOrchestrator(BMADOrchestrator):
             },
         }
 
-        print(f"📋 Enhanced Task Analysis Complete:")
+        print("📋 Enhanced Task Analysis Complete:")
         print(f"   Complexity: {complexity.value}")
         print(f"   Agents needed: {len(recommended_workflow)}")
         print(f"   Workflow: {' → '.join(recommended_workflow)}")
@@ -72,7 +72,7 @@ class EnhancedBMADOrchestrator(BMADOrchestrator):
 
         return plan
 
-    def execute_with_reasoning(self, task_description: str) -> Tuple[bool, str]:
+    def execute_with_reasoning(self, task_description: str) -> tuple[bool, str]:
         """Execute task with ReAct reasoning if needed"""
         # First analyze the task
         plan = self.analyze_and_plan(task_description)
