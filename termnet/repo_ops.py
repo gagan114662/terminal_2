@@ -6,13 +6,11 @@ Designed for autonomous code changes with comprehensive safety checks.
 """
 
 import json
-import os
 import subprocess
-import tempfile
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 @dataclass
@@ -46,7 +44,7 @@ class GitClient:
     Provides idempotent operations, conflict detection, and rollback safety.
     """
 
-    def __init__(self, repo_path: str, config: Dict[str, Any] = None):
+    def __init__(self, repo_path: str, config: dict[str, Any] = None):
         """
         Initialize GitClient for repository operations.
 
@@ -73,7 +71,7 @@ class GitClient:
             if key not in self.config:
                 self.config[key] = value
 
-    def _run_git_command(self, args: List[str], check: bool = True) -> GitResult:
+    def _run_git_command(self, args: list[str], check: bool = True) -> GitResult:
         """
         Run git command safely with error handling.
 
@@ -167,7 +165,7 @@ class GitClient:
 
         return result
 
-    def add_files(self, files: List[str]) -> GitResult:
+    def add_files(self, files: list[str]) -> GitResult:
         """
         Stage files for commit.
 
@@ -197,7 +195,7 @@ class GitClient:
         )
 
     def commit(
-        self, message: str, details: str = "", files: List[str] = None
+        self, message: str, details: str = "", files: list[str] = None
     ) -> GitResult:
         """
         Create commit with standardized message format.
@@ -276,7 +274,7 @@ class GitClient:
         """
         return self._run_git_command(["diff", f"origin/{base_branch}...HEAD"])
 
-    def get_changed_files(self, base_branch: str = "main") -> List[str]:
+    def get_changed_files(self, base_branch: str = "main") -> list[str]:
         """
         Get list of files changed between current branch and base branch.
 
@@ -316,7 +314,7 @@ class PRClient:
     Provides autonomous PR creation and management capabilities.
     """
 
-    def __init__(self, repo_path: str, config: Dict[str, Any] = None):
+    def __init__(self, repo_path: str, config: dict[str, Any] = None):
         """
         Initialize PRClient for pull request operations.
 
@@ -341,7 +339,7 @@ class PRClient:
             if key not in self.config:
                 self.config[key] = value
 
-    def _run_gh_command(self, args: List[str]) -> GitResult:
+    def _run_gh_command(self, args: list[str]) -> GitResult:
         """
         Run GitHub CLI command safely.
 
@@ -402,9 +400,11 @@ class PRClient:
             changed_files = git_client.get_changed_files(base_branch)
             body = self.config["pr_template"].format(
                 summary=title,
-                changes=f"- Modified {len(changed_files)} files"
-                if changed_files
-                else "- No file changes detected",
+                changes=(
+                    f"- Modified {len(changed_files)} files"
+                    if changed_files
+                    else "- No file changes detected"
+                ),
                 testing="- Automated tests will run on PR",
             )
 
@@ -430,7 +430,7 @@ class PRClient:
 
         return result
 
-    def get_pr_info(self, pr_number: int) -> Optional[PRInfo]:
+    def get_pr_info(self, pr_number: int) -> PRInfo | None:
         """
         Get information about a pull request.
 
@@ -565,7 +565,7 @@ class RepoOperations:
     Provides atomic operations for autonomous code changes.
     """
 
-    def __init__(self, repo_path: str, config: Dict[str, Any] = None):
+    def __init__(self, repo_path: str, config: dict[str, Any] = None):
         """
         Initialize RepoOperations.
 
@@ -598,7 +598,7 @@ class RepoOperations:
         return self.git.create_branch(safe_name, base_branch)
 
     def commit_changes(
-        self, summary: str, details: str = "", files: List[str] = None
+        self, summary: str, details: str = "", files: list[str] = None
     ) -> GitResult:
         """
         Commit changes with standardized message.
@@ -615,7 +615,7 @@ class RepoOperations:
 
     def create_pr_for_branch(
         self, title: str, description: str = "", base_branch: str = "main"
-    ) -> Tuple[GitResult, GitResult]:
+    ) -> tuple[GitResult, GitResult]:
         """
         Push current branch and create PR atomically.
 
@@ -651,7 +651,7 @@ class RepoOperations:
         """
         return self.git.reset_to_commit(commit_sha, hard=True)
 
-    def get_repository_state(self) -> Dict[str, Any]:
+    def get_repository_state(self) -> dict[str, Any]:
         """
         Get comprehensive repository state information.
 

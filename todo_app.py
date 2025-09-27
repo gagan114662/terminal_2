@@ -4,11 +4,9 @@ Complete TODO List Application with SQLite Database
 """
 
 import argparse
-import os
 import sqlite3
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Tuple
 
 from tabulate import tabulate
 
@@ -116,7 +114,7 @@ class TodoManager:
 
     def list_todos(
         self, status: str = None, category: str = None, sort_by: str = "created_at"
-    ) -> List[sqlite3.Row]:
+    ) -> list[sqlite3.Row]:
         """List TODO items with optional filters"""
         query = "SELECT * FROM todos WHERE 1=1"
         params = []
@@ -134,7 +132,7 @@ class TodoManager:
         self.db.cursor.execute(query, params)
         return self.db.cursor.fetchall()
 
-    def get_todo(self, todo_id: int) -> Optional[sqlite3.Row]:
+    def get_todo(self, todo_id: int) -> sqlite3.Row | None:
         """Get a specific TODO item"""
         self.db.cursor.execute("SELECT * FROM todos WHERE id = ?", (todo_id,))
         return self.db.cursor.fetchone()
@@ -204,7 +202,7 @@ class TodoManager:
         except sqlite3.IntegrityError:
             return -1
 
-    def list_categories(self) -> List[sqlite3.Row]:
+    def list_categories(self) -> list[sqlite3.Row]:
         """List all categories"""
         self.db.cursor.execute("SELECT * FROM categories ORDER BY name")
         return self.db.cursor.fetchall()
@@ -276,7 +274,7 @@ class TodoCLI:
             "Created": todo["created_at"][:10],
         }
 
-    def display_todos(self, todos: List[sqlite3.Row]):
+    def display_todos(self, todos: list[sqlite3.Row]):
         """Display todos in a formatted table"""
         if not todos:
             print("No todos found.")

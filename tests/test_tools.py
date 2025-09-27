@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -47,7 +47,7 @@ class TestTerminalTool:
     async def test_execute_command_timeout(self, terminal_tool):
         with patch("asyncio.create_subprocess_shell") as mock_create:
             mock_process = AsyncMock()
-            mock_process.communicate.side_effect = asyncio.TimeoutError()
+            mock_process.communicate.side_effect = TimeoutError()
             mock_process.terminate = MagicMock()
             mock_create.return_value = mock_process
 

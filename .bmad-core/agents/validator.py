@@ -3,8 +3,7 @@ BMAD Validation Agent - Automated quality assurance and code validation
 Performs comprehensive validation without user intervention
 """
 
-import json
-from typing import Any, Dict, List
+from typing import Any
 
 
 class ValidatorAgent:
@@ -119,7 +118,7 @@ Begin comprehensive validation now!"""
 
         return base_prompt
 
-    def get_validation_commands(self) -> List[str]:
+    def get_validation_commands(self) -> list[str]:
         """Get list of validation commands to execute autonomously"""
         return [
             # Syntax and compilation checks
@@ -136,7 +135,7 @@ Begin comprehensive validation now!"""
             "python -c \"import sys, importlib; [importlib.import_module(m.replace('.py', '')) for m in sys.argv[1:] if m.endswith('.py')]\"",
         ]
 
-    def create_validation_report(self, results: Dict[str, Any]) -> str:
+    def create_validation_report(self, results: dict[str, Any]) -> str:
         """Create comprehensive validation report"""
         report = "📋 **AUTONOMOUS VALIDATION REPORT**\n\n"
 
@@ -145,7 +144,7 @@ Begin comprehensive validation now!"""
         else:
             report += "⚠️ **VALIDATION STATUS: ISSUES FOUND**\n\n"
 
-        report += f"**Summary Statistics:**\n"
+        report += "**Summary Statistics:**\n"
         report += f"- Total Rules: {results.get('total_rules', 0)}\n"
         report += f"- Passed: {results.get('passed', 0)} ✅\n"
         report += f"- Failed: {results.get('failed', 0)} ❌\n"
@@ -169,12 +168,12 @@ Begin comprehensive validation now!"""
 
         return report
 
-    def should_validate_automatically(self, context: Dict[str, Any]) -> bool:
+    def should_validate_automatically(self, context: dict[str, Any]) -> bool:
         """Determine if automatic validation should run"""
         # Always validate autonomously - this is the point of BMAD
         return True
 
-    def get_auto_fix_suggestions(self, failed_results: List) -> List[str]:
+    def get_auto_fix_suggestions(self, failed_results: list) -> list[str]:
         """Generate automatic fix suggestions"""
         fixes = []
 

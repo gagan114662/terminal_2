@@ -3,11 +3,8 @@ TermNet Trend Visualization System
 Creates charts and visualizations for trend analysis
 """
 
-import json
-import os
 import sqlite3
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
 
 
 class TrendVisualizer:
@@ -18,7 +15,7 @@ class TrendVisualizer:
 
     def create_line_chart(
         self,
-        data: List[Tuple[str, float]],
+        data: list[tuple[str, float]],
         width: int = 60,
         height: int = 20,
         title: str = "",
@@ -92,7 +89,7 @@ class TrendVisualizer:
 
         return "\n".join(chart_lines)
 
-    def _draw_line(self, chart: List[List[str]], x1: int, y1: int, x2: int, y2: int):
+    def _draw_line(self, chart: list[list[str]], x1: int, y1: int, x2: int, y2: int):
         """Draw a line between two points"""
         dx = abs(x2 - x1)
         dy = abs(y2 - y1)
@@ -122,7 +119,7 @@ class TrendVisualizer:
                 y1 += sy
 
     def create_bar_chart(
-        self, data: Dict[str, float], width: int = 50, title: str = ""
+        self, data: dict[str, float], width: int = 50, title: str = ""
     ) -> str:
         """Create horizontal bar chart"""
         if not data:
@@ -143,7 +140,7 @@ class TrendVisualizer:
         return "\n".join(chart_lines)
 
     def create_histogram(
-        self, values: List[float], bins: int = 10, width: int = 50, title: str = ""
+        self, values: list[float], bins: int = 10, width: int = 50, title: str = ""
     ) -> str:
         """Create histogram from values"""
         if not values:
@@ -176,7 +173,7 @@ class TrendVisualizer:
 
         return "\n".join(chart_lines)
 
-    def create_sparkline(self, values: List[float], width: int = 20) -> str:
+    def create_sparkline(self, values: list[float], width: int = 20) -> str:
         """Create a compact sparkline visualization"""
         if not values:
             return ""
@@ -320,7 +317,7 @@ class TrendVisualizer:
         values = [v for _, v in data]
         stats_lines = [
             "",
-            f"Statistics:",
+            "Statistics:",
             f"  Count: {len(values)}",
             f"  Mean:  {sum(values)/len(values):.2f}",
             f"  Min:   {min(values):.2f}",

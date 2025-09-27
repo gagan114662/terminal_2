@@ -24,8 +24,8 @@ async def main():
     agent = TermNetAgent(terminal)
 
     # Check configuration
-    print(f"✅ Agent initialized")
-    print(f"✅ Terminal session ready")
+    print("✅ Agent initialized")
+    print("✅ Terminal session ready")
 
     # Test 1: Direct terminal execution
     print("\n📝 Test 1: Direct Terminal Execution")

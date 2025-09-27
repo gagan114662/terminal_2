@@ -9,18 +9,16 @@ Provides safe, controlled access to AI-powered development tools.
 import argparse
 import json
 import logging
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Add the parent directory to sys.path to import termnet modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from termnet.autopilot import Autopilot, AutopilotConfig
 from termnet.code_indexer import CodeIndexer
-from termnet.edit_engine import EditEngine
 from termnet.planner import WorkPlanner
 from termnet.repo_ops import RepoOperations
 
@@ -38,7 +36,7 @@ def setup_logging(verbose: bool = False):
     )
 
 
-def find_repo_root(start_path: Path = None) -> Optional[Path]:
+def find_repo_root(start_path: Path = None) -> Path | None:
     """Find the repository root by looking for .git directory."""
     if start_path is None:
         start_path = Path.cwd()
@@ -50,7 +48,7 @@ def find_repo_root(start_path: Path = None) -> Optional[Path]:
     return None
 
 
-def load_config(repo_path: Path) -> Dict[str, Any]:
+def load_config(repo_path: Path) -> dict[str, Any]:
     """Load TermNet configuration from repository."""
     config_file = repo_path / ".termnet.json"
 
@@ -113,13 +111,13 @@ def cmd_plan(args):
         # Generate test specifications
         test_specs = planner.test_plan(plan)
 
-        print(f"\n✅ Plan created successfully!")
+        print("\n✅ Plan created successfully!")
         print(f"Plan hash: {plan['plan_hash']}")
         print(f"Total tasks: {plan['total_tasks']}")
         print(f"Estimated complexity: {plan.get('estimated_complexity', 'unknown')}")
 
         # Display task breakdown
-        print(f"\n📝 Task Breakdown:")
+        print("\n📝 Task Breakdown:")
         for task_id, task_data in plan["nodes"].items():
             risk_icon = (
                 "🔴"
@@ -223,7 +221,7 @@ def cmd_execute(args):
 
         # Display results
         if result.success:
-            print(f"\n✅ Execution completed successfully!")
+            print("\n✅ Execution completed successfully!")
             print(f"Tasks completed: {result.tasks_completed}")
             print(f"Execution time: {result.execution_time:.2f}s")
 
@@ -290,7 +288,7 @@ def cmd_status(args):
     config = load_config(repo_path)
     setup_logging(args.verbose)
 
-    print(f"📊 TermNet Status")
+    print("📊 TermNet Status")
     print(f"Repository: {repo_path}")
 
     try:
@@ -303,7 +301,7 @@ def cmd_status(args):
         repo_state = repo_ops.get_repository_state()
         autopilot_status = autopilot.get_execution_status()
 
-        print(f"\n🔧 Repository State:")
+        print("\n🔧 Repository State:")
         print(f"  Current branch: {repo_state['current_branch']}")
         print(f"  Current SHA: {repo_state['current_sha']}")
         print(f"  Clean: {'✅' if repo_state['is_clean'] else '❌'}")
@@ -315,7 +313,7 @@ def cmd_status(args):
             if len(repo_state["changed_files"]) > 5:
                 print(f"    ... and {len(repo_state['changed_files']) - 5} more")
 
-        print(f"\n⚙️ Configuration:")
+        print("\n⚙️ Configuration:")
         print(f"  Safety checks: {'✅' if config['safety_checks'] else '❌'}")
         print(f"  Dry run: {'✅' if config['dry_run'] else '❌'}")
         print(f"  Max tasks: {config['max_tasks_per_run']}")
@@ -327,7 +325,7 @@ def cmd_status(args):
             include_globs=config["allowed_paths"], exclude_globs=config["blocked_paths"]
         )
 
-        print(f"\n📂 Code Index:")
+        print("\n📂 Code Index:")
         print(f"  Files indexed: {len(repo_intel.get('files', []))}")
         print(f"  Symbols found: {len(repo_intel.get('symbols', {}))}")
 

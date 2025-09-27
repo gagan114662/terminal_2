@@ -3,15 +3,14 @@ TermNet Trend Analysis System
 Tracks metrics, analyzes patterns, and provides insights
 """
 
-import sqlite3
 import json
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
-from collections import defaultdict, Counter
-import os
 import logging
 import math
+import os
+import sqlite3
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,25 +19,27 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Metric:
     """Individual metric data point"""
+
     timestamp: str
     category: str
     name: str
     value: float
-    metadata: Dict[str, Any]
-    tags: List[str]
+    metadata: dict[str, Any]
+    tags: list[str]
 
 
 @dataclass
 class Trend:
     """Trend analysis result"""
+
     category: str
     name: str
     direction: str  # 'increasing', 'decreasing', 'stable'
     slope: float
     correlation: float
-    forecast: List[float]
+    forecast: list[float]
     confidence: float
-    anomalies: List[Dict[str, Any]]
+    anomalies: list[dict[str, Any]]
 
 
 class TrendAnalyzer:
@@ -51,7 +52,8 @@ class TrendAnalyzer:
     def _init_database(self):
         """Initialize trend database"""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS metrics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT NOT NULL,
@@ -62,9 +64,11 @@ class TrendAnalyzer:
                     tags TEXT,
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS trends (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     category TEXT NOT NULL,
@@ -77,9 +81,11 @@ class TrendAnalyzer:
                     anomalies TEXT,
                     analyzed_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS reports (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     report_type TEXT NOT NULL,
@@ -87,15 +93,26 @@ class TrendAnalyzer:
                     summary TEXT,
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Create indexes for performance
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_metrics_category ON metrics(category)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_metrics_category ON metrics(category)"
+            )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_metrics_name ON metrics(name)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp)"
+            )
 
-    def record_metric(self, category: str, name: str, value: float,
-                     metadata: Optional[Dict] = None, tags: Optional[List[str]] = None):
+    def record_metric(
+        self,
+        category: str,
+        name: str,
+        value: float,
+        metadata: dict | None = None,
+        tags: list[str] | None = None,
+    ):
         """Record a new metric data point"""
         metric = Metric(
             timestamp=datetime.now().isoformat(),
@@ -103,27 +120,34 @@ class TrendAnalyzer:
             name=name,
             value=value,
             metadata=metadata or {},
-            tags=tags or []
+            tags=tags or [],
         )
 
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO metrics (timestamp, category, name, value, metadata, tags)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                metric.timestamp,
-                metric.category,
-                metric.name,
-                metric.value,
-                json.dumps(metric.metadata),
-                json.dumps(metric.tags)
-            ))
+            """,
+                (
+                    metric.timestamp,
+                    metric.category,
+                    metric.name,
+                    metric.value,
+                    json.dumps(metric.metadata),
+                    json.dumps(metric.tags),
+                ),
+            )
 
         logger.info(f"Recorded metric: {category}/{name} = {value}")
 
-    def get_metrics(self, category: str, name: str,
-                   start_time: Optional[datetime] = None,
-                   end_time: Optional[datetime] = None) -> List[Tuple[str, float]]:
+    def get_metrics(
+        self,
+        category: str,
+        name: str,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+    ) -> list[tuple[str, float]]:
         """Retrieve metrics for analysis"""
         query = """
             SELECT timestamp, value FROM metrics
@@ -145,8 +169,9 @@ class TrendAnalyzer:
             cursor = conn.execute(query, params)
             return cursor.fetchall()
 
-    def analyze_trend(self, category: str, name: str,
-                     window_days: int = 7) -> Optional[Trend]:
+    def analyze_trend(
+        self, category: str, name: str, window_days: int = 7
+    ) -> Trend | None:
         """Analyze trend for a specific metric"""
         start_time = datetime.now() - timedelta(days=window_days)
         data = self.get_metrics(category, name, start_time)
@@ -166,7 +191,7 @@ class TrendAnalyzer:
         n = len(x)
         sum_x = sum(x)
         sum_y = sum(y)
-        sum_xy = sum(xi * yi for xi, yi in zip(x, y))
+        sum_xy = sum(xi * yi for xi, yi in zip(x, y, strict=False))
         sum_x2 = sum(xi * xi for xi in x)
 
         slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x)
@@ -176,7 +201,9 @@ class TrendAnalyzer:
         mean_x = sum_x / n
         mean_y = sum_y / n
 
-        numerator = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
+        numerator = sum(
+            (xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y, strict=False)
+        )
         denominator_x = math.sqrt(sum((xi - mean_x) ** 2 for xi in x))
         denominator_y = math.sqrt(sum((yi - mean_y) ** 2 for yi in y))
 
@@ -187,11 +214,11 @@ class TrendAnalyzer:
 
         # Determine trend direction
         if abs(slope) < 0.01:
-            direction = 'stable'
+            direction = "stable"
         elif slope > 0:
-            direction = 'increasing'
+            direction = "increasing"
         else:
-            direction = 'decreasing'
+            direction = "decreasing"
 
         # Simple forecast (next 3 points)
         last_x = x[-1]
@@ -206,11 +233,13 @@ class TrendAnalyzer:
 
         for i, value in enumerate(values):
             if abs(value - mean) > 2 * std:
-                anomalies.append({
-                    'timestamp': timestamps[i].isoformat(),
-                    'value': value,
-                    'deviation': (value - mean) / std
-                })
+                anomalies.append(
+                    {
+                        "timestamp": timestamps[i].isoformat(),
+                        "value": value,
+                        "deviation": (value - mean) / std,
+                    }
+                )
 
         # Calculate confidence based on correlation and data points
         confidence = abs(correlation) * min(1.0, len(data) / 10.0)
@@ -223,87 +252,101 @@ class TrendAnalyzer:
             correlation=float(correlation),
             forecast=forecast,
             confidence=confidence,
-            anomalies=anomalies
+            anomalies=anomalies,
         )
 
         # Store trend analysis
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO trends (category, name, direction, slope, correlation,
                                   forecast, confidence, anomalies)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                trend.category,
-                trend.name,
-                trend.direction,
-                trend.slope,
-                trend.correlation,
-                json.dumps(trend.forecast),
-                trend.confidence,
-                json.dumps(trend.anomalies)
-            ))
+            """,
+                (
+                    trend.category,
+                    trend.name,
+                    trend.direction,
+                    trend.slope,
+                    trend.correlation,
+                    json.dumps(trend.forecast),
+                    trend.confidence,
+                    json.dumps(trend.anomalies),
+                ),
+            )
 
         return trend
 
-    def analyze_patterns(self, window_days: int = 30) -> Dict[str, Any]:
+    def analyze_patterns(self, window_days: int = 30) -> dict[str, Any]:
         """Analyze patterns across all metrics"""
         start_time = datetime.now() - timedelta(days=window_days)
 
         with sqlite3.connect(self.db_path) as conn:
             # Get all unique category/name combinations
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT DISTINCT category, name FROM metrics
                 WHERE timestamp >= ?
-            """, (start_time.isoformat(),))
+            """,
+                (start_time.isoformat(),),
+            )
 
             metrics = cursor.fetchall()
 
         patterns = {
-            'trending_up': [],
-            'trending_down': [],
-            'stable': [],
-            'volatile': [],
-            'anomalous': []
+            "trending_up": [],
+            "trending_down": [],
+            "stable": [],
+            "volatile": [],
+            "anomalous": [],
         }
 
         for category, name in metrics:
             trend = self.analyze_trend(category, name, window_days)
             if trend:
-                if trend.direction == 'increasing' and trend.confidence > 0.7:
-                    patterns['trending_up'].append({
-                        'metric': f"{category}/{name}",
-                        'slope': trend.slope,
-                        'confidence': trend.confidence
-                    })
-                elif trend.direction == 'decreasing' and trend.confidence > 0.7:
-                    patterns['trending_down'].append({
-                        'metric': f"{category}/{name}",
-                        'slope': trend.slope,
-                        'confidence': trend.confidence
-                    })
-                elif trend.direction == 'stable':
-                    patterns['stable'].append({
-                        'metric': f"{category}/{name}",
-                        'confidence': trend.confidence
-                    })
+                if trend.direction == "increasing" and trend.confidence > 0.7:
+                    patterns["trending_up"].append(
+                        {
+                            "metric": f"{category}/{name}",
+                            "slope": trend.slope,
+                            "confidence": trend.confidence,
+                        }
+                    )
+                elif trend.direction == "decreasing" and trend.confidence > 0.7:
+                    patterns["trending_down"].append(
+                        {
+                            "metric": f"{category}/{name}",
+                            "slope": trend.slope,
+                            "confidence": trend.confidence,
+                        }
+                    )
+                elif trend.direction == "stable":
+                    patterns["stable"].append(
+                        {"metric": f"{category}/{name}", "confidence": trend.confidence}
+                    )
 
                 if abs(trend.correlation) < 0.3:
-                    patterns['volatile'].append({
-                        'metric': f"{category}/{name}",
-                        'correlation': trend.correlation
-                    })
+                    patterns["volatile"].append(
+                        {
+                            "metric": f"{category}/{name}",
+                            "correlation": trend.correlation,
+                        }
+                    )
 
                 if len(trend.anomalies) > 0:
-                    patterns['anomalous'].append({
-                        'metric': f"{category}/{name}",
-                        'anomaly_count': len(trend.anomalies),
-                        'anomalies': trend.anomalies
-                    })
+                    patterns["anomalous"].append(
+                        {
+                            "metric": f"{category}/{name}",
+                            "anomaly_count": len(trend.anomalies),
+                            "anomalies": trend.anomalies,
+                        }
+                    )
 
         return patterns
 
-    def generate_report(self, report_type: str = "summary",
-                       window_days: int = 7) -> str:
+    def generate_report(
+        self, report_type: str = "summary", window_days: int = 7
+    ) -> str:
         """Generate trend analysis report"""
         patterns = self.analyze_patterns(window_days)
 
@@ -315,26 +358,26 @@ class TrendAnalyzer:
         ]
 
         if report_type == "summary":
-            report_lines.extend([
-                "SUMMARY",
-                "-" * 40,
-                f"Metrics Trending Up: {len(patterns['trending_up'])}",
-                f"Metrics Trending Down: {len(patterns['trending_down'])}",
-                f"Stable Metrics: {len(patterns['stable'])}",
-                f"Volatile Metrics: {len(patterns['volatile'])}",
-                f"Metrics with Anomalies: {len(patterns['anomalous'])}",
-                ""
-            ])
+            report_lines.extend(
+                [
+                    "SUMMARY",
+                    "-" * 40,
+                    f"Metrics Trending Up: {len(patterns['trending_up'])}",
+                    f"Metrics Trending Down: {len(patterns['trending_down'])}",
+                    f"Stable Metrics: {len(patterns['stable'])}",
+                    f"Volatile Metrics: {len(patterns['volatile'])}",
+                    f"Metrics with Anomalies: {len(patterns['anomalous'])}",
+                    "",
+                ]
+            )
 
         elif report_type == "detailed":
             # Trending up
-            if patterns['trending_up']:
-                report_lines.extend([
-                    "TRENDING UP ↑",
-                    "-" * 40
-                ])
-                for item in sorted(patterns['trending_up'],
-                                 key=lambda x: x['slope'], reverse=True)[:5]:
+            if patterns["trending_up"]:
+                report_lines.extend(["TRENDING UP ↑", "-" * 40])
+                for item in sorted(
+                    patterns["trending_up"], key=lambda x: x["slope"], reverse=True
+                )[:5]:
                     report_lines.append(
                         f"  • {item['metric']}: slope={item['slope']:.4f}, "
                         f"confidence={item['confidence']:.2f}"
@@ -342,13 +385,11 @@ class TrendAnalyzer:
                 report_lines.append("")
 
             # Trending down
-            if patterns['trending_down']:
-                report_lines.extend([
-                    "TRENDING DOWN ↓",
-                    "-" * 40
-                ])
-                for item in sorted(patterns['trending_down'],
-                                 key=lambda x: x['slope'])[:5]:
+            if patterns["trending_down"]:
+                report_lines.extend(["TRENDING DOWN ↓", "-" * 40])
+                for item in sorted(patterns["trending_down"], key=lambda x: x["slope"])[
+                    :5
+                ]:
                     report_lines.append(
                         f"  • {item['metric']}: slope={item['slope']:.4f}, "
                         f"confidence={item['confidence']:.2f}"
@@ -356,17 +397,17 @@ class TrendAnalyzer:
                 report_lines.append("")
 
             # Anomalies
-            if patterns['anomalous']:
-                report_lines.extend([
-                    "ANOMALIES DETECTED ⚠",
-                    "-" * 40
-                ])
-                for item in sorted(patterns['anomalous'],
-                                 key=lambda x: x['anomaly_count'], reverse=True)[:5]:
+            if patterns["anomalous"]:
+                report_lines.extend(["ANOMALIES DETECTED ⚠", "-" * 40])
+                for item in sorted(
+                    patterns["anomalous"],
+                    key=lambda x: x["anomaly_count"],
+                    reverse=True,
+                )[:5]:
                     report_lines.append(
                         f"  • {item['metric']}: {item['anomaly_count']} anomalies"
                     )
-                    for anomaly in item['anomalies'][:2]:  # Show first 2 anomalies
+                    for anomaly in item["anomalies"][:2]:  # Show first 2 anomalies
                         report_lines.append(
                             f"    - {anomaly['timestamp']}: value={anomaly['value']:.2f}, "
                             f"deviation={anomaly['deviation']:.2f}σ"
@@ -377,76 +418,81 @@ class TrendAnalyzer:
             alerts = []
 
             # Critical trends
-            for item in patterns['trending_down']:
-                if item['confidence'] > 0.8 and item['slope'] < -1.0:
-                    alerts.append({
-                        'level': 'CRITICAL',
-                        'message': f"{item['metric']} showing steep decline",
-                        'details': item
-                    })
+            for item in patterns["trending_down"]:
+                if item["confidence"] > 0.8 and item["slope"] < -1.0:
+                    alerts.append(
+                        {
+                            "level": "CRITICAL",
+                            "message": f"{item['metric']} showing steep decline",
+                            "details": item,
+                        }
+                    )
 
             # Anomaly alerts
-            for item in patterns['anomalous']:
-                if item['anomaly_count'] > 3:
-                    alerts.append({
-                        'level': 'WARNING',
-                        'message': f"{item['metric']} has multiple anomalies",
-                        'details': item
-                    })
+            for item in patterns["anomalous"]:
+                if item["anomaly_count"] > 3:
+                    alerts.append(
+                        {
+                            "level": "WARNING",
+                            "message": f"{item['metric']} has multiple anomalies",
+                            "details": item,
+                        }
+                    )
 
             # Volatility alerts
-            for item in patterns['volatile']:
-                if abs(item['correlation']) < 0.1:
-                    alerts.append({
-                        'level': 'INFO',
-                        'message': f"{item['metric']} showing high volatility",
-                        'details': item
-                    })
+            for item in patterns["volatile"]:
+                if abs(item["correlation"]) < 0.1:
+                    alerts.append(
+                        {
+                            "level": "INFO",
+                            "message": f"{item['metric']} showing high volatility",
+                            "details": item,
+                        }
+                    )
 
             if alerts:
-                report_lines.extend([
-                    "ALERTS",
-                    "-" * 40
-                ])
-                for alert in sorted(alerts, key=lambda x: x['level']):
-                    report_lines.append(
-                        f"  [{alert['level']}] {alert['message']}"
-                    )
+                report_lines.extend(["ALERTS", "-" * 40])
+                for alert in sorted(alerts, key=lambda x: x["level"]):
+                    report_lines.append(f"  [{alert['level']}] {alert['message']}")
                 report_lines.append("")
 
         report = "\n".join(report_lines)
 
         # Store report
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO reports (report_type, content, summary)
                 VALUES (?, ?, ?)
-            """, (
-                report_type,
-                report,
-                json.dumps(patterns)
-            ))
+            """,
+                (report_type, report, json.dumps(patterns)),
+            )
 
         return report
 
-    def get_statistics(self, category: str = None) -> Dict[str, Any]:
+    def get_statistics(self, category: str = None) -> dict[str, Any]:
         """Get statistical summary"""
         with sqlite3.connect(self.db_path) as conn:
             if category:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     SELECT name, COUNT(*) as count, AVG(value) as mean,
                            MIN(value) as min, MAX(value) as max
                     FROM metrics
                     WHERE category = ?
                     GROUP BY name
-                """, (category,))
+                """,
+                    (category,),
+                )
             else:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     SELECT category, name, COUNT(*) as count, AVG(value) as mean,
                            MIN(value) as min, MAX(value) as max
                     FROM metrics
                     GROUP BY category, name
-                """)
+                """
+                )
 
             results = cursor.fetchall()
 
@@ -455,29 +501,35 @@ class TrendAnalyzer:
             if category:
                 name, count, mean, min_val, max_val = row
                 stats[name] = {
-                    'count': count,
-                    'mean': mean,
-                    'min': min_val,
-                    'max': max_val,
-                    'range': max_val - min_val
+                    "count": count,
+                    "mean": mean,
+                    "min": min_val,
+                    "max": max_val,
+                    "range": max_val - min_val,
                 }
             else:
                 cat, name, count, mean, min_val, max_val = row
                 if cat not in stats:
                     stats[cat] = {}
                 stats[cat][name] = {
-                    'count': count,
-                    'mean': mean,
-                    'min': min_val,
-                    'max': max_val,
-                    'range': max_val - min_val
+                    "count": count,
+                    "mean": mean,
+                    "min": min_val,
+                    "max": max_val,
+                    "range": max_val - min_val,
                 }
 
         return stats
 
-    def collect_request_metrics(self, react_steps: int, tool_accuracy: float, latency_ms: int, request_id: str = None):
+    def collect_request_metrics(
+        self,
+        react_steps: int,
+        tool_accuracy: float,
+        latency_ms: int,
+        request_id: str = None,
+    ):
         """Collect minimal telemetry metrics for a completed request (opt-in via TERMNET_METRICS=1)"""
-        if not os.getenv("TERMNET_METRICS", "0") == "1":
+        if os.getenv("TERMNET_METRICS", "0") != "1":
             return
 
         # Prepare metrics data
@@ -486,7 +538,7 @@ class TrendAnalyzer:
             "request_id": request_id or f"req-{datetime.now().strftime('%H%M%S')}",
             "react_steps_per_request": react_steps,
             "tool_selection_accuracy": round(tool_accuracy, 3),
-            "reasoning_latency_ms": latency_ms
+            "reasoning_latency_ms": latency_ms,
         }
 
         # Ensure artifacts directory exists
@@ -498,7 +550,7 @@ class TrendAnalyzer:
         try:
             # Read existing data or start with empty list
             if os.path.exists(metrics_file):
-                with open(metrics_file, 'r') as f:
+                with open(metrics_file) as f:
                     all_metrics = json.load(f)
             else:
                 all_metrics = []
@@ -511,10 +563,12 @@ class TrendAnalyzer:
                 all_metrics = all_metrics[-100:]
 
             # Write back to file
-            with open(metrics_file, 'w') as f:
+            with open(metrics_file, "w") as f:
                 json.dump(all_metrics, f, indent=2)
 
-            logger.info(f"📊 Telemetry: {react_steps} steps, {tool_accuracy:.1%} accuracy, {latency_ms}ms latency")
+            logger.info(
+                f"📊 Telemetry: {react_steps} steps, {tool_accuracy:.1%} accuracy, {latency_ms}ms latency"
+            )
 
         except Exception as e:
             logger.warning(f"Failed to write telemetry metrics: {e}")
@@ -526,69 +580,70 @@ class MetricCollector:
     def __init__(self, analyzer: TrendAnalyzer):
         self.analyzer = analyzer
 
-    def collect_command_metrics(self, command: str, execution_time: float,
-                               success: bool, output_size: int):
+    def collect_command_metrics(
+        self, command: str, execution_time: float, success: bool, output_size: int
+    ):
         """Collect metrics from command execution"""
         self.analyzer.record_metric(
             category="commands",
             name="execution_time",
             value=execution_time,
             metadata={
-                'command': command,
-                'success': success,
-                'output_size': output_size
+                "command": command,
+                "success": success,
+                "output_size": output_size,
             },
-            tags=['performance', 'terminal']
+            tags=["performance", "terminal"],
         )
 
         self.analyzer.record_metric(
             category="commands",
             name="success_rate",
             value=1.0 if success else 0.0,
-            metadata={'command': command},
-            tags=['reliability']
+            metadata={"command": command},
+            tags=["reliability"],
         )
 
-    def collect_agent_metrics(self, response_time: float, tokens_used: int,
-                            tool_calls: int, memory_usage: float):
+    def collect_agent_metrics(
+        self,
+        response_time: float,
+        tokens_used: int,
+        tool_calls: int,
+        memory_usage: float,
+    ):
         """Collect metrics from agent operations"""
         self.analyzer.record_metric(
             category="agent",
             name="response_time",
             value=response_time,
-            metadata={
-                'tokens': tokens_used,
-                'tools': tool_calls
-            },
-            tags=['performance', 'llm']
+            metadata={"tokens": tokens_used, "tools": tool_calls},
+            tags=["performance", "llm"],
         )
 
         self.analyzer.record_metric(
             category="agent",
             name="memory_usage",
             value=memory_usage,
-            tags=['resources']
+            tags=["resources"],
         )
 
-    def collect_validation_metrics(self, validation_time: float,
-                                 rules_checked: int, violations: int):
+    def collect_validation_metrics(
+        self, validation_time: float, rules_checked: int, violations: int
+    ):
         """Collect metrics from validation system"""
         self.analyzer.record_metric(
             category="validation",
             name="check_time",
             value=validation_time,
-            metadata={
-                'rules': rules_checked,
-                'violations': violations
-            },
-            tags=['security', 'performance']
+            metadata={"rules": rules_checked, "violations": violations},
+            tags=["security", "performance"],
         )
 
         self.analyzer.record_metric(
             category="validation",
             name="violation_rate",
             value=violations / max(rules_checked, 1),
-            tags=['security', 'compliance']
+            tags=["security", "compliance"],
         )
 
 
@@ -608,7 +663,7 @@ def main():
             command=f"test_command_{i % 3}",
             execution_time=random.uniform(0.1, 2.0),
             success=random.random() > 0.2,
-            output_size=random.randint(100, 1000)
+            output_size=random.randint(100, 1000),
         )
 
         # Agent metrics
@@ -616,14 +671,14 @@ def main():
             response_time=random.uniform(0.5, 3.0),
             tokens_used=random.randint(50, 500),
             tool_calls=random.randint(0, 5),
-            memory_usage=random.uniform(100, 500)
+            memory_usage=random.uniform(100, 500),
         )
 
         # Validation metrics
         collector.collect_validation_metrics(
             validation_time=random.uniform(0.01, 0.5),
             rules_checked=random.randint(10, 30),
-            violations=random.randint(0, 3)
+            violations=random.randint(0, 3),
         )
 
         time.sleep(0.1)  # Small delay to spread timestamps
@@ -642,8 +697,10 @@ def main():
     for category, metrics in stats.items():
         print(f"\n{category}:")
         for name, values in metrics.items():
-            print(f"  {name}: mean={values['mean']:.2f}, "
-                  f"range=[{values['min']:.2f}, {values['max']:.2f}]")
+            print(
+                f"  {name}: mean={values['mean']:.2f}, "
+                f"range=[{values['min']:.2f}, {values['max']:.2f}]"
+            )
 
 
 if __name__ == "__main__":

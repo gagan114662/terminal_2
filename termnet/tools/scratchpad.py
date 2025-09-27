@@ -1,13 +1,13 @@
 import json
 import pathlib
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 DATA_FILE = pathlib.Path(__file__).parent / "scratchpad.json"
 
 
 class Scratchpad:
     def __init__(self):
-        self._notes: List[str] = []
+        self._notes: list[str] = []
         self._offline = False
         self._load_notes()
 
@@ -19,7 +19,7 @@ class Scratchpad:
         """Load notes from disk if the file exists"""
         if not self._offline and DATA_FILE.exists():
             try:
-                with open(DATA_FILE, "r", encoding="utf-8") as f:
+                with open(DATA_FILE, encoding="utf-8") as f:
                     self._notes = json.load(f)
             except Exception:
                 # If the file is corrupted or unreadable, reset
@@ -56,7 +56,7 @@ class Scratchpad:
             result += f"{i}. {note}\n"
         return result.strip()
 
-    async def run(self, action: str, content: str = "") -> Tuple[str, int, bool]:
+    async def run(self, action: str, content: str = "") -> tuple[str, int, bool]:
         # Normalize action names
         action = action.strip().lower().replace(" ", "_")
 
@@ -83,7 +83,7 @@ class Scratchpad:
     async def scratchpad(self, **kwargs):
         return await self.run(**kwargs)
 
-    def get_context_info(self) -> Dict[str, Any]:
+    def get_context_info(self) -> dict[str, Any]:
         return {
             "notes_count": len(self._notes),
             "last_note": self._notes[-1] if self._notes else None,
@@ -94,7 +94,7 @@ class ScratchpadTool:
     """Test-compatible wrapper for scratchpad functionality"""
 
     def __init__(self):
-        self._notes_dict: Dict[str, str] = {}
+        self._notes_dict: dict[str, str] = {}
         self._offline = False
 
     def set_offline_mode(self, offline: bool = True) -> None:
@@ -102,7 +102,7 @@ class ScratchpadTool:
         self._offline = offline
 
     @property
-    def notes(self) -> Dict[str, str]:
+    def notes(self) -> dict[str, str]:
         """Notes dictionary for test compatibility"""
         return self._notes_dict
 
@@ -169,9 +169,9 @@ class ScratchpadTool:
                     {
                         "key": key,
                         "content": content,
-                        "match_type": "key"
-                        if query_lower in key.lower()
-                        else "content",
+                        "match_type": (
+                            "key" if query_lower in key.lower() else "content"
+                        ),
                     }
                 )
 

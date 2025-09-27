@@ -5,7 +5,6 @@ Demonstrates browser_search and browser_click_and_collect tools
 """
 
 import asyncio
-import os
 import sys
 
 # Add the termnet directory to the path
@@ -113,7 +112,7 @@ async def test_automation_examples():
     for i, example in enumerate(examples, 1):
         print(f"{i:2d}. /analyst {example}")
 
-    print(f"\n💡 Each command will automatically run all 5 agents:")
+    print("\n💡 Each command will automatically run all 5 agents:")
     print("   analyst → pm → architect → developer → qa")
     print("\n🌐 The agents will use web search when needed for:")
     print("   - Competitive analysis and market research")

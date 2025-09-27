@@ -18,7 +18,7 @@ if not lat:
     sys.exit(0)
 
 m = statistics.median(lat[-10:])
-threshold = int((sys.argv[1] if len(sys.argv) > 1 else 300))
+threshold = int(sys.argv[1] if len(sys.argv) > 1 else 300)
 if m > threshold:
     print(f"❌ Latency regression: median={m}ms > {threshold}ms")
     sys.exit(1)

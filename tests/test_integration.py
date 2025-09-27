@@ -1,11 +1,8 @@
-import asyncio
-import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from termnet.agent import TermNetAgent
-from termnet.toolloader import ToolLoader
 
 
 class TestEndToEndIntegration:

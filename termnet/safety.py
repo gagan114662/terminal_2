@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import List, Tuple
 from urllib.parse import urlparse
 
 REDACTION = "[REDACTED]"
@@ -77,7 +76,7 @@ class SafetyChecker:
         }
     )
     # Tests expect rm -rf to match also with paths like /home/user
-    dangerous_patterns: List[re.Pattern] = field(
+    dangerous_patterns: list[re.Pattern] = field(
         default_factory=lambda: [
             re.compile(r"rm\s+-rf\s+(/|\S+)(\s|$)", re.IGNORECASE),
             re.compile(r"sudo\s+", re.IGNORECASE),
@@ -91,7 +90,7 @@ class SafetyChecker:
         ]
     )
 
-    restricted_paths: List[re.Pattern] = field(
+    restricted_paths: list[re.Pattern] = field(
         default_factory=lambda: [
             re.compile(r"^/etc/"),
             re.compile(r"^/proc/"),
@@ -105,7 +104,7 @@ class SafetyChecker:
         ]
     )
 
-    def is_safe_command(self, cmd: str) -> Tuple[bool, str]:
+    def is_safe_command(self, cmd: str) -> tuple[bool, str]:
         c = (cmd or "").strip()
         if not c:
             # tests expect True and empty message for empty/whitespace commands
@@ -138,7 +137,7 @@ class SafetyChecker:
         # For safe commands tests expect empty message string, not 'Allowed'
         return True, ""
 
-    def check_file_path(self, path: str) -> Tuple[bool, str]:
+    def check_file_path(self, path: str) -> tuple[bool, str]:
         p = (path or "").strip()
         if not p:
             return True, ""  # Empty path is considered safe for tests
@@ -157,7 +156,7 @@ class SafetyChecker:
 
         return True, ""  # empty message for safe path
 
-    def is_safe_url(self, url: str) -> Tuple[bool, str]:
+    def is_safe_url(self, url: str) -> tuple[bool, str]:
         if not url:
             return True, ""
 
@@ -196,7 +195,7 @@ class SafetyChecker:
 
     # Legacy class method for backward compatibility
     @classmethod
-    def is_safe(cls, command: str) -> Tuple[bool, str]:
+    def is_safe(cls, command: str) -> tuple[bool, str]:
         """Legacy class method for backward compatibility"""
         checker = cls()
         return checker.is_safe_command(command)

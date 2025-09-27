@@ -7,12 +7,10 @@ Integrates Syft for SBOM generation and Trivy/Grype for vulnerability scanning
 import datetime
 import hashlib
 import json
-import os
 import sqlite3
 import subprocess
 from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -23,8 +21,8 @@ class SBOMEntry:
     version: str
     type: str
     purl: str  # Package URL
-    licenses: List[str]
-    cpe: Optional[str] = None
+    licenses: list[str]
+    cpe: str | None = None
 
 
 @dataclass
@@ -34,9 +32,9 @@ class VulnerabilityReport:
     vulnerability_id: str
     package: str
     severity: str
-    fixed_version: Optional[str]
+    fixed_version: str | None
     description: str
-    cvss_score: Optional[float]
+    cvss_score: float | None
 
 
 @dataclass
@@ -52,7 +50,7 @@ class SecurityReceipt:
     vulnerabilities_medium: int
     vulnerabilities_low: int
     compliance_status: str
-    scanner_versions: Dict[str, str]
+    scanner_versions: dict[str, str]
 
 
 class ContainerSecurityScanner:
@@ -126,7 +124,7 @@ class ContainerSecurityScanner:
 
     def generate_sbom_syft(
         self, image_name: str, output_format: str = "spdx-json"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate SBOM using Syft"""
         try:
             # Generate SBOM
@@ -139,7 +137,7 @@ class ContainerSecurityScanner:
                 raise Exception(f"Syft error: {result.stderr}")
 
             # Parse SBOM
-            with open(output_file, "r") as f:
+            with open(output_file) as f:
                 sbom_data = json.load(f)
 
             # Calculate SBOM hash
@@ -162,7 +160,7 @@ class ContainerSecurityScanner:
         except Exception as e:
             return {"error": str(e), "sbom_file": None, "sbom_hash": None}
 
-    def scan_with_trivy(self, image_name: str) -> Dict[str, Any]:
+    def scan_with_trivy(self, image_name: str) -> dict[str, Any]:
         """Scan container with Trivy"""
         try:
             cmd = [
@@ -229,7 +227,7 @@ class ContainerSecurityScanner:
                 "severity_counts": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0},
             }
 
-    def scan_with_grype(self, image_name: str) -> Dict[str, Any]:
+    def scan_with_grype(self, image_name: str) -> dict[str, Any]:
         """Scan container with Grype"""
         try:
             cmd = ["grype", image_name, "-o", "json"]
@@ -257,9 +255,11 @@ class ContainerSecurityScanner:
                         vulnerability_id=vuln.get("id", ""),
                         package=match.get("artifact", {}).get("name", ""),
                         severity=vuln.get("severity", "Unknown"),
-                        fixed_version=vuln.get("fix", {}).get("versions", [""])[0]
-                        if vuln.get("fix")
-                        else None,
+                        fixed_version=(
+                            vuln.get("fix", {}).get("versions", [""])[0]
+                            if vuln.get("fix")
+                            else None
+                        ),
                         description=vuln.get("description", "")[:500],
                         cvss_score=None,  # Grype doesn't always provide CVSS
                     )
@@ -293,9 +293,9 @@ class ContainerSecurityScanner:
         self,
         scan_id: str,
         image_name: str,
-        sbom_result: Dict,
-        trivy_result: Dict,
-        grype_result: Dict,
+        sbom_result: dict,
+        trivy_result: dict,
+        grype_result: dict,
     ) -> SecurityReceipt:
         """Create validation receipt for security scan"""
 
@@ -342,7 +342,7 @@ class ContainerSecurityScanner:
         except:
             return "not installed"
 
-    def scan_container(self, image_name: str) -> Dict[str, Any]:
+    def scan_container(self, image_name: str) -> dict[str, Any]:
         """Comprehensive container security scan with SBOM generation"""
         import uuid
 
@@ -406,7 +406,7 @@ class ContainerSecurityScanner:
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"\n✅ Security scan complete!")
+        print("\n✅ Security scan complete!")
         print(f"📊 Report saved to: {report_file}")
         print(f"🎯 Compliance Status: {receipt.compliance_status}")
 
@@ -415,9 +415,9 @@ class ContainerSecurityScanner:
     def store_scan_results(
         self,
         scan_id: str,
-        sbom_result: Dict,
-        trivy_result: Dict,
-        grype_result: Dict,
+        sbom_result: dict,
+        trivy_result: dict,
+        grype_result: dict,
         receipt: SecurityReceipt,
     ):
         """Store scan results in database"""
@@ -506,7 +506,7 @@ if __name__ == "__main__":
     # Scan the image
     report = scanner.scan_container("termnet-api:latest")
 
-    print(f"\n📈 Vulnerability Summary:")
+    print("\n📈 Vulnerability Summary:")
     print(f"   Critical: {report['vulnerabilities']['critical']}")
     print(f"   High: {report['vulnerabilities']['high']}")
     print(f"   Medium: {report['vulnerabilities']['medium']}")

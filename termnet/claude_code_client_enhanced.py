@@ -4,11 +4,9 @@ Includes retry logic, context management, and task decomposition
 """
 
 import asyncio
-import json
 import os
-import subprocess
 import time
-from typing import AsyncGenerator, Dict, List, Tuple
+from collections.abc import AsyncGenerator
 
 from termnet.config import CONFIG
 
@@ -31,7 +29,7 @@ class EnhancedClaudeCodeClient:
 
     async def chat_stream(
         self, messages, tools=None, temperature=0.7
-    ) -> AsyncGenerator[Tuple[str, str], None]:
+    ) -> AsyncGenerator[tuple[str, str], None]:
         """
         Enhanced stream chat with retry logic and context management
         """
@@ -68,8 +66,8 @@ class EnhancedClaudeCodeClient:
             yield (tag, content)
 
     async def _execute_with_retry(
-        self, prompt: str, messages: List[Dict]
-    ) -> AsyncGenerator[Tuple[str, str], None]:
+        self, prompt: str, messages: list[dict]
+    ) -> AsyncGenerator[tuple[str, str], None]:
         """
         Execute Claude CLI with retry logic
         """
@@ -123,7 +121,7 @@ class EnhancedClaudeCodeClient:
                     stdout, stderr = await asyncio.wait_for(
                         process.communicate(), timeout=timeout
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     process.kill()
                     yield (
                         "CONTENT",
@@ -213,7 +211,7 @@ class EnhancedClaudeCodeClient:
         prompt_lower = prompt.lower()
         return any(indicator in prompt_lower for indicator in complex_indicators)
 
-    def _decompose_task(self, prompt: str) -> List[str]:
+    def _decompose_task(self, prompt: str) -> list[str]:
         """
         Break down complex tasks into smaller subtasks
         """
@@ -255,7 +253,7 @@ class EnhancedClaudeCodeClient:
         # Default - don't decompose
         return []
 
-    def _build_context(self, messages: List[Dict]) -> str:
+    def _build_context(self, messages: list[dict]) -> str:
         """
         Build optimized context from message history
         """

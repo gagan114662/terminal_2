@@ -2,7 +2,7 @@ import asyncio
 import contextlib
 import os
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from termnet.config import CONFIG
 from termnet.safety import SafetyChecker
@@ -23,7 +23,7 @@ except ImportError:
 
 class TerminalSession:
     def __init__(self):
-        self._command_history: List[Tuple[str, str, float, int]] = []
+        self._command_history: list[tuple[str, str, float, int]] = []
         self._last_command = ""
         self._last_exit_code = 0
         self.cwd = os.getcwd()
@@ -76,7 +76,7 @@ class TerminalSession:
         """Enable offline mode for testing - returns predictable results"""
         self._offline_mode = offline
 
-    def run(self, cmd: str, timeout: Optional[int] = None) -> Dict[str, Any]:
+    def run(self, cmd: str, timeout: int | None = None) -> dict[str, Any]:
         """Synchronous run method for tool compatibility"""
         if self._offline_mode:
             # Return predictable results for testing - use same logic as TerminalTool
@@ -90,7 +90,7 @@ class TerminalSession:
                 "exit_code": 0,
             }
 
-    def _get_offline_result(self, command: str) -> Dict[str, Any]:
+    def _get_offline_result(self, command: str) -> dict[str, Any]:
         """Get predictable offline results for testing"""
         # Handle specific test commands
         cmd = command.strip()
@@ -173,7 +173,7 @@ class TerminalSession:
 
     async def execute_command(
         self, command: str, timeout: int = CONFIG["COMMAND_TIMEOUT"]
-    ) -> Tuple[str, int, bool]:
+    ) -> tuple[str, int, bool]:
         command = command.strip()
         if not command:
             return "", 0, True
@@ -207,7 +207,7 @@ class TerminalSession:
 
     async def _execute_with_phase3_pipeline(
         self, command: str, timeout: int
-    ) -> Tuple[str, int, bool]:
+    ) -> tuple[str, int, bool]:
         """Execute command using Phase 3: 6-stage pipeline with claims and evidence"""
         try:
             # Stage 1: Policy Evaluation
@@ -283,7 +283,7 @@ class TerminalSession:
 
     async def _execute_phase2_fallback(
         self, command: str, timeout: int
-    ) -> Tuple[str, int, bool]:
+    ) -> tuple[str, int, bool]:
         """Fallback to Phase 2 execution when Phase 3 systems are unavailable"""
         # Legacy safety check
         is_safe, warn = SafetyChecker.is_safe(command)
@@ -300,7 +300,7 @@ class TerminalSession:
 
         full_out, full_err = [], []
 
-        async def _pump(stream, sink: List[str]):
+        async def _pump(stream, sink: list[str]):
             while True:
                 chunk = await stream.readline()
                 if not chunk:
@@ -312,7 +312,7 @@ class TerminalSession:
 
         try:
             await asyncio.wait_for(proc.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             with contextlib.suppress(ProcessLookupError):
                 proc.kill()
             return "❌ Command timed out", 124, False
@@ -337,7 +337,7 @@ class TerminalSession:
 
         return output, code, code == 0
 
-    def get_context_info(self) -> Dict[str, Any]:
+    def get_context_info(self) -> dict[str, Any]:
         context = {
             "current_directory": self.cwd,
             "last_command": self._last_command,
@@ -418,7 +418,7 @@ class TerminalSession:
         except Exception as e:
             print(f"⚠️ Validation error for command '{command}': {e}")
 
-    def _get_expected_patterns(self, command: str) -> List[str]:
+    def _get_expected_patterns(self, command: str) -> list[str]:
         """Get expected output patterns for command validation"""
         patterns = []
 
@@ -437,9 +437,7 @@ class TerminalSession:
 
         return patterns
 
-    async def validate_project(
-        self, project_path: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def validate_project(self, project_path: str | None = None) -> dict[str, Any]:
         """Manually trigger project validation"""
         if not self.validation_engine:
             return {"error": "Validation engine not available"}
@@ -448,9 +446,11 @@ class TerminalSession:
 
         # Import and add standard validation rules
         try:
-            from termnet.validation_rules import (ApplicationStartupValidation,
-                                                  FlaskApplicationValidation,
-                                                  PythonSyntaxValidation)
+            from termnet.validation_rules import (
+                ApplicationStartupValidation,
+                FlaskApplicationValidation,
+                PythonSyntaxValidation,
+            )
 
             # Add rules if not already present
             if not hasattr(self.validation_engine, "_rules_added"):
@@ -474,7 +474,7 @@ class TerminalSession:
         except Exception as e:
             return {"error": f"Validation failed: {e}"}
 
-    def get_validation_history(self, limit: int = 5) -> List[Dict]:
+    def get_validation_history(self, limit: int = 5) -> list[dict]:
         """Get recent validation history"""
         if not self.validation_engine:
             return []
@@ -501,7 +501,7 @@ class TerminalTool:
         if in_test:
             self.session.set_offline_mode(True)
 
-    def run(self, cmd: str, timeout: Optional[int] = None) -> Dict[str, Any]:
+    def run(self, cmd: str, timeout: int | None = None) -> dict[str, Any]:
         """Run a terminal command and return results"""
         # Offline mode for tests - predictable results
         if self._offline_mode or self._test_mode:
@@ -538,7 +538,7 @@ class TerminalTool:
         except Exception as e:
             return {"stdout": "", "stderr": str(e), "exit_code": 1}
 
-    def _get_offline_result(self, command: str) -> Dict[str, Any]:
+    def _get_offline_result(self, command: str) -> dict[str, Any]:
         """Get predictable offline results for testing"""
         # Handle specific test commands
         cmd = command.strip()
@@ -634,7 +634,7 @@ class TerminalTool:
         self._test_mode = test_mode
 
     async def execute_command(
-        self, command: str, timeout: Optional[int] = None, cwd: Optional[str] = None
+        self, command: str, timeout: int | None = None, cwd: str | None = None
     ):
         """Async wrapper for execute_command - expected by agent and tests"""
         # Check for safety first (even in tests)
@@ -674,11 +674,11 @@ class TerminalTool:
                 else:
                     return error or output, process.returncode, False
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.terminate()
                 try:
                     await asyncio.wait_for(process.wait(), timeout=5)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     process.kill()
                     await process.wait()
                 return "Command timed out", -1, False
@@ -694,7 +694,7 @@ class TerminalTool:
         """Stop the terminal tool"""
         return await self.session.stop()
 
-    def get_definition(self) -> Dict[str, Any]:
+    def get_definition(self) -> dict[str, Any]:
         """Get tool definition for registration"""
         return {
             "name": "terminal_execute",

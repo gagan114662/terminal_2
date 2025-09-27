@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Test script to verify BMAD ValidatorAgent import"""
 
-import os
 import sys
 
 # Add the BMAD core directory to the Python path

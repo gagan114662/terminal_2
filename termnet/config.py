@@ -35,7 +35,7 @@ def load_config():
 
     try:
         if config_path.exists():
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 file_config = json.load(f)
                 config.update(file_config)
     except Exception as e:

@@ -7,13 +7,11 @@ import asyncio
 import json
 import os
 import resource
-import signal
 import tempfile
 import time
 from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import psutil
 
@@ -57,9 +55,9 @@ class SandboxResult:
     output: str
     error: str
     duration: float
-    resources_used: Dict[str, Any]
-    violations: List[str]
-    evidence_paths: List[str]
+    resources_used: dict[str, Any]
+    violations: list[str]
+    evidence_paths: list[str]
     sandbox_type: SandboxType
 
 
@@ -141,7 +139,7 @@ class SecurityPolicy:
             ),
         }
 
-    def assess_command_security(self, command: str) -> Tuple[SecurityLevel, List[str]]:
+    def assess_command_security(self, command: str) -> tuple[SecurityLevel, list[str]]:
         """Assess command security level and return violations"""
         violations = []
 
@@ -208,7 +206,7 @@ class ProcessSandbox:
                 output = stdout.decode("utf-8", errors="replace") if stdout else ""
                 error = stderr.decode("utf-8", errors="replace") if stderr else ""
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 violations.append(f"Execution timeout ({self.limits.time_limit}s)")
                 try:
                     process.terminate()
@@ -292,7 +290,7 @@ class ProcessSandbox:
         except Exception as e:
             print(f"⚠️ Failed to set resource limits: {e}")
 
-    def _create_isolated_env(self) -> Dict[str, str]:
+    def _create_isolated_env(self) -> dict[str, str]:
         """Create isolated environment variables"""
         # Start with minimal safe environment
         safe_env = {
@@ -328,7 +326,7 @@ class ProcessSandbox:
         except Exception as e:
             print(f"⚠️ Failed to setup process limits: {e}")
 
-    async def _monitor_resources(self, violations: List[str]):
+    async def _monitor_resources(self, violations: list[str]):
         """Monitor resource usage during execution"""
         try:
             while True:
@@ -357,7 +355,7 @@ class ProcessSandbox:
         except Exception as e:
             violations.append(f"Monitoring error: {str(e)}")
 
-    def _get_resource_usage(self) -> Dict[str, Any]:
+    def _get_resource_usage(self) -> dict[str, Any]:
         """Get current resource usage statistics"""
         try:
             current_process = psutil.Process()
@@ -366,9 +364,11 @@ class ProcessSandbox:
                 "cpu_percent": current_process.cpu_percent(),
                 "memory_mb": current_process.memory_info().rss / (1024 * 1024),
                 "num_threads": current_process.num_threads(),
-                "num_fds": current_process.num_fds()
-                if hasattr(current_process, "num_fds")
-                else 0,
+                "num_fds": (
+                    current_process.num_fds()
+                    if hasattr(current_process, "num_fds")
+                    else 0
+                ),
                 "create_time": current_process.create_time(),
             }
         except Exception as e:
@@ -380,7 +380,7 @@ class ProcessSandbox:
         output: str,
         error: str,
         exit_code: int,
-        violations: List[str],
+        violations: list[str],
     ) -> str:
         """Collect evidence of sandboxed execution"""
         timestamp = int(time.time())
@@ -496,7 +496,7 @@ class ContainerSandbox:
 
     def _create_container_config(
         self, command: str, working_dir: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create Docker container configuration"""
         config = {
             "image": "python:3.11-alpine",  # Lightweight base image
@@ -527,8 +527,8 @@ class ContainerSandbox:
         return any(cmd in command.lower() for cmd in write_commands)
 
     async def _run_container(
-        self, config: Dict[str, Any], violations: List[str]
-    ) -> Optional[str]:
+        self, config: dict[str, Any], violations: list[str]
+    ) -> str | None:
         """Run Docker container with configuration"""
         try:
             # Build Docker run command
@@ -584,8 +584,8 @@ class ContainerSandbox:
             return None
 
     async def _wait_for_container(
-        self, container_id: str, timeout: int, violations: List[str]
-    ) -> Tuple[int, str, str]:
+        self, container_id: str, timeout: int, violations: list[str]
+    ) -> tuple[int, str, str]:
         """Wait for container to complete and get results"""
         try:
             # Wait for container with timeout
@@ -598,7 +598,7 @@ class ContainerSandbox:
                     wait_process.communicate(), timeout=timeout
                 )
                 exit_code = int(stdout.decode().strip()) if stdout else 1
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 violations.append(f"Container timeout ({timeout}s)")
                 # Kill the container
                 await asyncio.create_subprocess_exec("docker", "kill", container_id)
@@ -623,7 +623,7 @@ class ContainerSandbox:
             violations.append(f"Container wait error: {str(e)}")
             return 1, "", str(e)
 
-    async def _get_container_stats(self, container_id: str) -> Dict[str, Any]:
+    async def _get_container_stats(self, container_id: str) -> dict[str, Any]:
         """Get container resource usage statistics"""
         try:
             stats_process = await asyncio.create_subprocess_exec(
@@ -648,7 +648,7 @@ class ContainerSandbox:
                         "block_io": block.strip(),
                     }
 
-        except Exception as e:
+        except Exception:
             pass
 
         return {}
@@ -699,7 +699,7 @@ class ContainerSandbox:
             pass
 
     def _create_error_result(
-        self, error: str, violations: List[str], evidence_paths: List[str]
+        self, error: str, violations: list[str], evidence_paths: list[str]
     ) -> SandboxResult:
         """Create error result"""
         return SandboxResult(
@@ -760,7 +760,7 @@ class SandboxManager:
             if preferred_sandbox == SandboxType.CONTAINER:
                 sandbox = ContainerSandbox(limits)
                 result = await sandbox.execute(command, working_dir)
-                if result.success or not result.error == "Docker not available":
+                if result.success or result.error != "Docker not available":
                     return result
                 # Fall back to process sandbox if container fails
 
@@ -773,7 +773,7 @@ class SandboxManager:
             sandbox = ProcessSandbox(limits)
             return await sandbox.execute(command, working_dir)
 
-    def get_security_assessment(self, command: str) -> Dict[str, Any]:
+    def get_security_assessment(self, command: str) -> dict[str, Any]:
         """Get security assessment for a command without executing"""
         security_level, violations = self.security_policy.assess_command_security(
             command
@@ -790,7 +790,9 @@ class SandboxManager:
                 "network": limits.network,
                 "time_limit": limits.time_limit,
             },
-            "recommended_sandbox": SandboxType.CONTAINER.value
-            if security_level in [SecurityLevel.ISOLATED, SecurityLevel.RESTRICTED]
-            else SandboxType.PROCESS.value,
+            "recommended_sandbox": (
+                SandboxType.CONTAINER.value
+                if security_level in [SecurityLevel.ISOLATED, SecurityLevel.RESTRICTED]
+                else SandboxType.PROCESS.value
+            ),
         }

@@ -9,13 +9,12 @@ future planning and implementation decisions.
 import hashlib
 import json
 import logging
-import os
 import re
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 
 class FeedbackType(Enum):
@@ -49,14 +48,14 @@ class FeedbackItem:
     severity: FeedbackSeverity
     title: str
     description: str
-    file_path: Optional[str] = None
-    line_number: Optional[int] = None
-    code_snippet: Optional[str] = None
-    suggested_fix: Optional[str] = None
-    reviewer: Optional[str] = None
+    file_path: str | None = None
+    line_number: int | None = None
+    code_snippet: str | None = None
+    suggested_fix: str | None = None
+    reviewer: str | None = None
     timestamp: str = None
-    tags: List[str] = None
-    metadata: Dict[str, Any] = None
+    tags: list[str] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -80,12 +79,12 @@ class FeedbackPattern:
     pattern_id: str
     pattern_type: str
     description: str
-    conditions: List[str]
-    recommendations: List[str]
+    conditions: list[str]
+    recommendations: list[str]
     confidence_score: float
     occurrences: int
     last_seen: str
-    examples: List[str] = None
+    examples: list[str] = None
 
     def __post_init__(self):
         if self.examples is None:
@@ -97,10 +96,10 @@ class FeedbackSummary:
     """Summary of feedback analysis."""
 
     total_feedback_items: int
-    feedback_by_type: Dict[str, int]
-    feedback_by_severity: Dict[str, int]
-    top_patterns: List[FeedbackPattern]
-    improvement_suggestions: List[str]
+    feedback_by_type: dict[str, int]
+    feedback_by_severity: dict[str, int]
+    top_patterns: list[FeedbackPattern]
+    improvement_suggestions: list[str]
     analysis_timestamp: str
     confidence_score: float
 
@@ -111,7 +110,7 @@ class FeedbackParser:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    def parse_github_review(self, review_data: Dict[str, Any]) -> List[FeedbackItem]:
+    def parse_github_review(self, review_data: dict[str, Any]) -> list[FeedbackItem]:
         """Parse GitHub review comments into feedback items."""
         feedback_items = []
 
@@ -140,7 +139,7 @@ class FeedbackParser:
 
         return feedback_items
 
-    def parse_test_failures(self, test_results: Dict[str, Any]) -> List[FeedbackItem]:
+    def parse_test_failures(self, test_results: dict[str, Any]) -> list[FeedbackItem]:
         """Parse test failure results into feedback items."""
         feedback_items = []
 
@@ -168,8 +167,8 @@ class FeedbackParser:
         return feedback_items
 
     def parse_user_corrections(
-        self, corrections: List[Dict[str, Any]]
-    ) -> List[FeedbackItem]:
+        self, corrections: list[dict[str, Any]]
+    ) -> list[FeedbackItem]:
         """Parse user corrections into feedback items."""
         feedback_items = []
 
@@ -246,7 +245,7 @@ class FeedbackParser:
         else:
             return FeedbackSeverity.MEDIUM
 
-    def _extract_tags(self, text: str) -> List[str]:
+    def _extract_tags(self, text: str) -> list[str]:
         """Extract tags from text content."""
         tags = []
 
@@ -277,11 +276,11 @@ class PatternLearner:
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self.patterns: Dict[str, FeedbackPattern] = {}
+        self.patterns: dict[str, FeedbackPattern] = {}
 
     def learn_from_feedback(
-        self, feedback_items: List[FeedbackItem]
-    ) -> List[FeedbackPattern]:
+        self, feedback_items: list[FeedbackItem]
+    ) -> list[FeedbackPattern]:
         """Learn patterns from a batch of feedback items."""
         new_patterns = []
 
@@ -305,8 +304,8 @@ class PatternLearner:
         return new_patterns
 
     def _group_similar_feedback(
-        self, feedback_items: List[FeedbackItem]
-    ) -> List[List[FeedbackItem]]:
+        self, feedback_items: list[FeedbackItem]
+    ) -> list[list[FeedbackItem]]:
         """Group similar feedback items together."""
         groups = []
         processed = set()
@@ -357,8 +356,8 @@ class PatternLearner:
         return True
 
     def _extract_pattern(
-        self, feedback_group: List[FeedbackItem]
-    ) -> Optional[FeedbackPattern]:
+        self, feedback_group: list[FeedbackItem]
+    ) -> FeedbackPattern | None:
         """Extract a pattern from a group of similar feedback items."""
         if len(feedback_group) < 2:
             return None
@@ -396,7 +395,7 @@ class PatternLearner:
 
         return pattern
 
-    def _find_common_words(self, texts: List[str]) -> List[str]:
+    def _find_common_words(self, texts: list[str]) -> list[str]:
         """Find common words across multiple texts."""
         if not texts:
             return []
@@ -430,7 +429,7 @@ class PatternLearner:
             word for word in common_words if word not in stop_words and len(word) > 2
         ]
 
-    def _extract_conditions(self, feedback_group: List[FeedbackItem]) -> List[str]:
+    def _extract_conditions(self, feedback_group: list[FeedbackItem]) -> list[str]:
         """Extract conditions that trigger this type of feedback."""
         conditions = []
 
@@ -465,7 +464,7 @@ class PatternLearner:
 
         return conditions
 
-    def _extract_recommendations(self, feedback_group: List[FeedbackItem]) -> List[str]:
+    def _extract_recommendations(self, feedback_group: list[FeedbackItem]) -> list[str]:
         """Extract recommendations from feedback."""
         recommendations = []
 
@@ -494,7 +493,7 @@ class PatternLearner:
 
         return recommendations[:5]  # Top 5 recommendations
 
-    def _find_code_patterns(self, code_snippets: List[str]) -> List[str]:
+    def _find_code_patterns(self, code_snippets: list[str]) -> list[str]:
         """Find common code patterns in snippets."""
         patterns = []
 
@@ -517,7 +516,7 @@ class PatternLearner:
 
         return patterns
 
-    def _generate_pattern_description(self, feedback_group: List[FeedbackItem]) -> str:
+    def _generate_pattern_description(self, feedback_group: list[FeedbackItem]) -> str:
         """Generate a description for the pattern."""
         feedback_type = feedback_group[0].type.value.replace("_", " ").title()
         common_words = self._find_common_words(
@@ -557,7 +556,7 @@ class PatternLearner:
 
         return merged
 
-    def get_relevant_patterns(self, context: Dict[str, Any]) -> List[FeedbackPattern]:
+    def get_relevant_patterns(self, context: dict[str, Any]) -> list[FeedbackPattern]:
         """Get patterns relevant to a given context."""
         relevant_patterns = []
 
@@ -573,7 +572,7 @@ class PatternLearner:
         return relevant_patterns
 
     def _is_pattern_relevant(
-        self, pattern: FeedbackPattern, context: Dict[str, Any]
+        self, pattern: FeedbackPattern, context: dict[str, Any]
     ) -> bool:
         """Check if a pattern is relevant to the given context."""
         # Check file extension
@@ -618,7 +617,7 @@ class FeedbackEngine:
         # Load existing patterns
         self._load_patterns()
 
-    def ingest_github_review(self, review_data: Dict[str, Any]) -> List[FeedbackItem]:
+    def ingest_github_review(self, review_data: dict[str, Any]) -> list[FeedbackItem]:
         """Ingest GitHub review data."""
         self.logger.info(f"Ingesting GitHub review {review_data.get('id')}")
 
@@ -633,7 +632,7 @@ class FeedbackEngine:
 
         return feedback_items
 
-    def ingest_test_results(self, test_results: Dict[str, Any]) -> List[FeedbackItem]:
+    def ingest_test_results(self, test_results: dict[str, Any]) -> list[FeedbackItem]:
         """Ingest test failure results."""
         self.logger.info("Ingesting test results")
 
@@ -649,8 +648,8 @@ class FeedbackEngine:
         return feedback_items
 
     def ingest_user_corrections(
-        self, corrections: List[Dict[str, Any]]
-    ) -> List[FeedbackItem]:
+        self, corrections: list[dict[str, Any]]
+    ) -> list[FeedbackItem]:
         """Ingest user corrections."""
         self.logger.info(f"Ingesting {len(corrections)} user corrections")
 
@@ -665,7 +664,7 @@ class FeedbackEngine:
 
         return feedback_items
 
-    def get_recommendations(self, context: Dict[str, Any]) -> List[str]:
+    def get_recommendations(self, context: dict[str, Any]) -> list[str]:
         """Get recommendations based on learned patterns."""
         relevant_patterns = self.learner.get_relevant_patterns(context)
 
@@ -728,7 +727,7 @@ class FeedbackEngine:
             confidence_score=confidence_score,
         )
 
-    def _store_feedback(self, feedback_items: List[FeedbackItem]):
+    def _store_feedback(self, feedback_items: list[FeedbackItem]):
         """Store feedback items to disk."""
         for item in feedback_items:
             file_path = self.storage_path / "feedback" / f"{item.id}.json"
@@ -758,7 +757,7 @@ class FeedbackEngine:
         patterns_file = self.storage_path / "patterns.json"
         if patterns_file.exists():
             try:
-                with open(patterns_file, "r") as f:
+                with open(patterns_file) as f:
                     patterns_data = json.load(f)
 
                 for pattern_id, pattern_dict in patterns_data.items():
@@ -769,7 +768,7 @@ class FeedbackEngine:
             except Exception as e:
                 self.logger.warning(f"Failed to load patterns: {e}")
 
-    def _load_recent_feedback(self, cutoff_date: datetime) -> List[FeedbackItem]:
+    def _load_recent_feedback(self, cutoff_date: datetime) -> list[FeedbackItem]:
         """Load feedback items from the last N days."""
         feedback_items = []
         feedback_dir = self.storage_path / "feedback"
@@ -779,7 +778,7 @@ class FeedbackEngine:
 
         for feedback_file in feedback_dir.glob("*.json"):
             try:
-                with open(feedback_file, "r") as f:
+                with open(feedback_file) as f:
                     data = json.load(f)
 
                 # Convert enum strings back to enums
@@ -800,7 +799,7 @@ class FeedbackEngine:
                     if item_date.tzinfo is not None and cutoff_date.tzinfo is None:
                         import datetime as dt
 
-                        cutoff_date = cutoff_date.replace(tzinfo=dt.timezone.utc)
+                        cutoff_date = cutoff_date.replace(tzinfo=dt.UTC)
                     elif item_date.tzinfo is None and cutoff_date.tzinfo is not None:
                         cutoff_date = cutoff_date.replace(tzinfo=None)
 
@@ -819,8 +818,8 @@ class FeedbackEngine:
         return feedback_items
 
     def _generate_improvement_suggestions(
-        self, recent_feedback: List[FeedbackItem], top_patterns: List[FeedbackPattern]
-    ) -> List[str]:
+        self, recent_feedback: list[FeedbackItem], top_patterns: list[FeedbackPattern]
+    ) -> list[str]:
         """Generate improvement suggestions based on feedback and patterns."""
         suggestions = []
 

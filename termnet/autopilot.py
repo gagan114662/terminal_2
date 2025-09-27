@@ -7,13 +7,12 @@ Follows Google AI best practices with comprehensive safety checks and rollback c
 
 import json
 import logging
-import os
 import shutil
 import tempfile
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .code_indexer import CodeIndexer
 from .edit_engine import EditEngine
@@ -44,12 +43,12 @@ class ExecutionResult:
     message: str
     tasks_completed: int
     tasks_failed: int
-    branch_created: Optional[str] = None
-    commit_sha: Optional[str] = None
-    pr_url: Optional[str] = None
+    branch_created: str | None = None
+    commit_sha: str | None = None
+    pr_url: str | None = None
     execution_time: float = 0.0
-    errors: List[str] = None
-    warnings: List[str] = None
+    errors: list[str] = None
+    warnings: list[str] = None
 
     def __post_init__(self):
         if self.errors is None:
@@ -65,7 +64,7 @@ class TaskExecutionResult:
     task_id: str
     success: bool
     message: str
-    changes_made: List[str] = None
+    changes_made: list[str] = None
     tests_passed: bool = True
     execution_time: float = 0.0
 
@@ -127,7 +126,7 @@ class Autopilot:
         )
 
     def execute_goal(
-        self, goal: str, context: Dict[str, Any] = None
+        self, goal: str, context: dict[str, Any] = None
     ) -> ExecutionResult:
         """
         Execute autonomous code changes for a given goal.
@@ -213,7 +212,7 @@ class Autopilot:
                 errors=[str(e)],
             )
 
-    def _analyze_repository(self) -> Dict[str, Any]:
+    def _analyze_repository(self) -> dict[str, Any]:
         """
         Analyze repository to gather intelligence for planning.
 
@@ -239,8 +238,8 @@ class Autopilot:
             return {"success": False, "error": str(e)}
 
     def _create_execution_plan(
-        self, goal: str, repo_intel: Dict[str, Any], context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+        self, goal: str, repo_intel: dict[str, Any], context: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """
         Create detailed execution plan for the goal.
 
@@ -265,7 +264,7 @@ class Autopilot:
 
         return plan
 
-    def _perform_safety_checks(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+    def _perform_safety_checks(self, plan: dict[str, Any]) -> dict[str, Any]:
         """
         Perform comprehensive safety checks before execution.
 
@@ -362,7 +361,7 @@ class Autopilot:
 
         return backup_dir
 
-    def _execute_tasks(self, plan: Dict[str, Any]) -> ExecutionResult:
+    def _execute_tasks(self, plan: dict[str, Any]) -> ExecutionResult:
         """
         Execute tasks according to the plan.
 
@@ -424,7 +423,7 @@ class Autopilot:
         )
 
     def _execute_single_task(
-        self, task_id: str, task_data: Dict[str, Any], plan: Dict[str, Any]
+        self, task_id: str, task_data: dict[str, Any], plan: dict[str, Any]
     ) -> TaskExecutionResult:
         """
         Execute a single task from the plan.
@@ -459,7 +458,7 @@ class Autopilot:
             )
 
     def _execute_analysis_task(
-        self, task_id: str, task_data: Dict[str, Any]
+        self, task_id: str, task_data: dict[str, Any]
     ) -> TaskExecutionResult:
         """Execute analysis task."""
         # Analysis tasks are typically read-only
@@ -480,7 +479,7 @@ class Autopilot:
         )
 
     def _execute_implementation_task(
-        self, task_id: str, task_data: Dict[str, Any]
+        self, task_id: str, task_data: dict[str, Any]
     ) -> TaskExecutionResult:
         """Execute implementation task that makes code changes."""
         estimated_files = task_data.get("estimated_files", [])
@@ -514,7 +513,7 @@ class Autopilot:
         )
 
     def _execute_validation_task(
-        self, task_id: str, task_data: Dict[str, Any], plan: Dict[str, Any]
+        self, task_id: str, task_data: dict[str, Any], plan: dict[str, Any]
     ) -> TaskExecutionResult:
         """Execute validation/testing task."""
         # Run relevant tests from the plan
@@ -582,7 +581,7 @@ class Autopilot:
 
         return commit_result
 
-    def _create_pull_request(self, goal: str, plan: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_pull_request(self, goal: str, plan: dict[str, Any]) -> dict[str, Any]:
         """
         Create pull request for the changes.
 
@@ -650,8 +649,10 @@ Automated tests have been executed as part of the implementation process.
                                 shutil.rmtree(dest)
                             else:
                                 dest.unlink()
-                        shutil.copytree(item, dest) if item.is_dir() else shutil.copy2(
-                            item, dest
+                        (
+                            shutil.copytree(item, dest)
+                            if item.is_dir()
+                            else shutil.copy2(item, dest)
                         )
 
             # Reset git state
@@ -671,7 +672,7 @@ Automated tests have been executed as part of the implementation process.
             self.logger.error(f"Rollback failed: {e}")
             return False
 
-    def get_execution_status(self) -> Dict[str, Any]:
+    def get_execution_status(self) -> dict[str, Any]:
         """
         Get current execution status.
 

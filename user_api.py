@@ -95,7 +95,7 @@ def get_user(user_id):
     try:
         user = User.query.get_or_404(user_id)
         return jsonify({"user": user.to_dict()}), 200
-    except Exception as e:
+    except Exception:
         return jsonify({"error": "User not found"}), 404
 
 

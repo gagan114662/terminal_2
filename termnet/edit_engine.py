@@ -5,16 +5,12 @@ Safely applies code patches with conflict resolution and guardrails.
 Follows Google AI best practices: idempotent operations, clear error handling.
 """
 
-import difflib
-import hashlib
 import os
 import re
 import shutil
 import tempfile
 from dataclasses import asdict, dataclass
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 @dataclass
@@ -22,10 +18,10 @@ class EditResult:
     """Result of an edit operation."""
 
     status: str  # "success", "conflict", "error", "blocked"
-    files_touched: List[str]
+    files_touched: list[str]
     idempotent: bool
     message: str
-    conflicts: List[str] = None
+    conflicts: list[str] = None
     diff_applied: str = ""
 
     def __post_init__(self):
@@ -51,7 +47,7 @@ class EditEngine:
     comprehensive safety checks to prevent harmful changes.
     """
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] = None):
         """
         Initialize edit engine with configuration.
 
@@ -99,7 +95,7 @@ class EditEngine:
         if idempotent_check:
             return EditResult(
                 status="success",
-                files_touched=list(sorted(patches.keys())),
+                files_touched=sorted(patches.keys()),
                 idempotent=True,
                 message="No changes needed; patch already applied (idempotent)",
                 conflicts=[],
@@ -115,7 +111,7 @@ class EditEngine:
                     full_path = os.path.join(repo_path, file_path)
 
                     if os.path.exists(full_path):
-                        with open(full_path, "r", encoding="utf-8") as f:
+                        with open(full_path, encoding="utf-8") as f:
                             content = f.readlines()
                     else:
                         content = []
@@ -185,7 +181,7 @@ class EditEngine:
             elif isinstance(value, dict):
                 self.config[key] = {**value, **self.config.get(key, {})}
 
-    def _parse_unified_diff(self, diff: str) -> Dict[str, List[Dict[str, Any]]]:
+    def _parse_unified_diff(self, diff: str) -> dict[str, list[dict[str, Any]]]:
         """
         Parse unified diff into structured format.
 
@@ -257,8 +253,8 @@ class EditEngine:
         return patches
 
     def _check_guardrails(
-        self, patches: Dict[str, List[Dict[str, Any]]]
-    ) -> List[GuardrailViolation]:
+        self, patches: dict[str, list[dict[str, Any]]]
+    ) -> list[GuardrailViolation]:
         """Check patch against configured guardrails."""
         violations = []
         guardrails = self.config["write_guardrails"]
@@ -288,7 +284,7 @@ class EditEngine:
             )
 
         # Check file paths
-        for file_path in patches.keys():
+        for file_path in patches:
             # Check blocked paths
             if self._matches_patterns(file_path, guardrails["blocked_paths"]):
                 violations.append(
@@ -311,7 +307,7 @@ class EditEngine:
 
         return violations
 
-    def _matches_patterns(self, file_path: str, patterns: List[str]) -> bool:
+    def _matches_patterns(self, file_path: str, patterns: list[str]) -> bool:
         """Check if file path matches any of the given patterns."""
         import fnmatch
 
@@ -320,7 +316,7 @@ class EditEngine:
                 return True
         return False
 
-    def _check_idempotency(self, patches: Dict[str, List[Dict[str, Any]]]) -> bool:
+    def _check_idempotency(self, patches: dict[str, list[dict[str, Any]]]) -> bool:
         """Check if patch is already applied (idempotent)."""
         for file_path, hunks in patches.items():
             # Resolve file path relative to repo_path
@@ -332,7 +328,7 @@ class EditEngine:
                 return False
 
             try:
-                with open(full_path, "r", encoding="utf-8") as f:
+                with open(full_path, encoding="utf-8") as f:
                     current_content = f.readlines()
 
                 # Check if hunks are already applied
@@ -346,7 +342,7 @@ class EditEngine:
 
         return True
 
-    def _hunk_already_applied(self, content: List[str], hunk: Dict[str, Any]) -> bool:
+    def _hunk_already_applied(self, content: list[str], hunk: dict[str, Any]) -> bool:
         """Check if a specific hunk is already applied to content."""
         # Extract the expected result lines from hunk
         expected_lines = []
@@ -369,7 +365,7 @@ class EditEngine:
 
         return actual_lines == expected_lines
 
-    def _check_conflicts(self, patches: Dict[str, List[Dict[str, Any]]]) -> List[str]:
+    def _check_conflicts(self, patches: dict[str, list[dict[str, Any]]]) -> list[str]:
         """Check for conflicts that would prevent patch application."""
         conflicts = []
 
@@ -382,7 +378,7 @@ class EditEngine:
                 continue  # New file, no conflicts
 
             try:
-                with open(full_path, "r", encoding="utf-8") as f:
+                with open(full_path, encoding="utf-8") as f:
                     current_content = f.readlines()
 
                 for i, hunk in enumerate(hunks):
@@ -394,7 +390,7 @@ class EditEngine:
 
         return conflicts
 
-    def _can_apply_hunk(self, content: List[str], hunk: Dict[str, Any]) -> bool:
+    def _can_apply_hunk(self, content: list[str], hunk: dict[str, Any]) -> bool:
         """Check if a hunk can be applied to content without conflicts."""
         old_start = hunk["old_start"] - 1  # Convert to 0-based
         context_lines = []
@@ -426,7 +422,7 @@ class EditEngine:
         return True
 
     def _apply_patches_with_retry(
-        self, patches: Dict[str, List[Dict[str, Any]]], original_diff: str
+        self, patches: dict[str, list[dict[str, Any]]], original_diff: str
     ) -> EditResult:
         """Apply patches with conflict resolution and retry logic."""
         # Create backup
@@ -481,7 +477,7 @@ class EditEngine:
                 message=f"Error applying patch: {e}",
             )
 
-    def _apply_patches(self, patches: Dict[str, List[Dict[str, Any]]]) -> List[str]:
+    def _apply_patches(self, patches: dict[str, list[dict[str, Any]]]) -> list[str]:
         """Apply patches and return list of conflicts."""
         conflicts = []
 
@@ -492,7 +488,7 @@ class EditEngine:
                 full_path = os.path.join(repo_path, file_path)
 
                 if os.path.exists(full_path):
-                    with open(full_path, "r", encoding="utf-8") as f:
+                    with open(full_path, encoding="utf-8") as f:
                         content = f.readlines()
                 else:
                     content = []
@@ -512,8 +508,8 @@ class EditEngine:
         return conflicts
 
     def _apply_hunks_to_content(
-        self, content: List[str], hunks: List[Dict[str, Any]]
-    ) -> List[str]:
+        self, content: list[str], hunks: list[dict[str, Any]]
+    ) -> list[str]:
         """Apply hunks to content and return modified content."""
         # Sort hunks by start position (reverse order for safe application)
         sorted_hunks = sorted(hunks, key=lambda h: h["old_start"], reverse=True)
@@ -525,7 +521,7 @@ class EditEngine:
 
         return new_content
 
-    def _apply_single_hunk(self, content: List[str], hunk: Dict[str, Any]) -> List[str]:
+    def _apply_single_hunk(self, content: list[str], hunk: dict[str, Any]) -> list[str]:
         """Apply a single hunk to content."""
         old_start = hunk["old_start"] - 1  # Convert to 0-based
         new_content = content[:]
@@ -555,8 +551,8 @@ class EditEngine:
         return new_content
 
     def _retry_with_split_hunks(
-        self, patches: Dict[str, List[Dict[str, Any]]], conflicts: List[str]
-    ) -> List[str]:
+        self, patches: dict[str, list[dict[str, Any]]], conflicts: list[str]
+    ) -> list[str]:
         """Retry applying patches by splitting conflicting hunks."""
         resolved = []
 
@@ -574,11 +570,11 @@ class EditEngine:
 
         return resolved
 
-    def _try_split_hunk_application(self, file_path: str, hunk: Dict[str, Any]) -> bool:
+    def _try_split_hunk_application(self, file_path: str, hunk: dict[str, Any]) -> bool:
         """Try to apply a hunk by splitting it into smaller parts."""
         # Simple implementation: try applying line by line
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.readlines()
 
             # This is a simplified split approach
@@ -593,7 +589,7 @@ class EditEngine:
         except Exception:
             return False
 
-    def _create_backup(self, file_paths: List[str]):
+    def _create_backup(self, file_paths: list[str]):
         """Create backup of files before modification."""
         if not self.config["conflict_resolution"]["backup_on_conflict"]:
             return
@@ -623,7 +619,7 @@ class EditEngine:
         shutil.rmtree(self._backup_dir)
         self._backup_dir = None
 
-    def get_patch_preview(self, diff: str) -> Dict[str, Any]:
+    def get_patch_preview(self, diff: str) -> dict[str, Any]:
         """
         Generate a preview of what the patch would do.
 
@@ -656,7 +652,7 @@ class EditEngine:
                 full_path = os.path.join(repo_path, file_path)
 
                 if os.path.exists(full_path):
-                    with open(full_path, "r", encoding="utf-8") as f:
+                    with open(full_path, encoding="utf-8") as f:
                         content = f.readlines()
                 else:
                     content = []

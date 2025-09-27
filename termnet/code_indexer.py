@@ -11,9 +11,9 @@ import json
 import os
 import re
 from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 
 @dataclass
@@ -60,18 +60,18 @@ class CodeIndexer:
         self._ensure_cache_dir()
 
         # Index data structures
-        self.files: Dict[str, Dict[str, Any]] = {}
-        self.symbols: Dict[str, CodeSymbol] = {}
-        self.imports: Dict[str, List[str]] = defaultdict(list)
-        self.word_index: Dict[str, Set[str]] = defaultdict(set)
-        self.line_index: Dict[str, List[str]] = {}
+        self.files: dict[str, dict[str, Any]] = {}
+        self.symbols: dict[str, CodeSymbol] = {}
+        self.imports: dict[str, list[str]] = defaultdict(list)
+        self.word_index: dict[str, set[str]] = defaultdict(set)
+        self.line_index: dict[str, list[str]] = {}
 
         # Pattern matchers
         self._init_patterns()
 
     def build_index(
-        self, include_globs: List[str], exclude_globs: List[str] = None
-    ) -> Dict[str, Any]:
+        self, include_globs: list[str], exclude_globs: list[str] = None
+    ) -> dict[str, Any]:
         """
         Build comprehensive code index for repository.
 
@@ -115,7 +115,7 @@ class CodeIndexer:
 
         return repo_intel
 
-    def code_search(self, query: str, max_results: int = 10) -> List[SearchResult]:
+    def code_search(self, query: str, max_results: int = 10) -> list[SearchResult]:
         """
         Search for code matching the query.
 
@@ -171,7 +171,7 @@ class CodeIndexer:
         results.sort(key=lambda x: x.relevance_score, reverse=True)
         return results[:max_results]
 
-    def who_refs(self, symbol: str) -> List[str]:
+    def who_refs(self, symbol: str) -> list[str]:
         """
         Find files that reference the given symbol.
 
@@ -201,7 +201,7 @@ class CodeIndexer:
 
         return referencing_files
 
-    def impact(self, surface: List[str]) -> Dict[str, Any]:
+    def impact(self, surface: list[str]) -> dict[str, Any]:
         """
         Analyze impact of changes to given files or symbols.
 
@@ -259,8 +259,8 @@ class CodeIndexer:
         return impact_data
 
     def _find_files(
-        self, include_globs: List[str], exclude_globs: List[str]
-    ) -> List[str]:
+        self, include_globs: list[str], exclude_globs: list[str]
+    ) -> list[str]:
         """Find files matching include patterns and not matching exclude patterns."""
         all_files = []
 
@@ -302,7 +302,7 @@ class CodeIndexer:
     def _index_file(self, file_path: str):
         """Index a single file."""
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
 
             lines = content.splitlines()
@@ -325,7 +325,7 @@ class CodeIndexer:
         except Exception as e:
             raise Exception(f"Failed to read {file_path}: {e}")
 
-    def _extract_python_symbols(self, file_path: str, content: str, lines: List[str]):
+    def _extract_python_symbols(self, file_path: str, content: str, lines: list[str]):
         """Extract Python symbols using regex patterns."""
         # Extract imports
         import_matches = re.finditer(
@@ -368,7 +368,7 @@ class CodeIndexer:
                 signature=match.group(0).strip(),
             )
 
-    def _extract_js_symbols(self, file_path: str, content: str, lines: List[str]):
+    def _extract_js_symbols(self, file_path: str, content: str, lines: list[str]):
         """Extract JavaScript/TypeScript symbols."""
         # Extract function declarations
         func_patterns = [
@@ -415,7 +415,7 @@ class CodeIndexer:
                     if len(word) >= 3:  # Index words with 3+ characters
                         self.word_index[word].add(file_path)
 
-    def _generate_repo_intel(self) -> Dict[str, Any]:
+    def _generate_repo_intel(self) -> dict[str, Any]:
         """Generate repository intelligence summary."""
         return {
             "files": list(self.files.keys()),
@@ -428,7 +428,7 @@ class CodeIndexer:
             "index_timestamp": self._get_index_hash(),
         }
 
-    def _analyze_file_types(self) -> Dict[str, int]:
+    def _analyze_file_types(self) -> dict[str, int]:
         """Analyze distribution of file types."""
         types = Counter()
         for file_path in self.files:
@@ -436,7 +436,7 @@ class CodeIndexer:
             types[ext or "no_extension"] += 1
         return dict(types)
 
-    def _analyze_symbol_types(self) -> Dict[str, int]:
+    def _analyze_symbol_types(self) -> dict[str, int]:
         """Analyze distribution of symbol types."""
         types = Counter(s.type for s in self.symbols.values())
         return dict(types)
@@ -500,7 +500,7 @@ class CodeIndexer:
 
         return 0.1
 
-    def _calculate_content_relevance(self, query_words: Set[str], line: str) -> float:
+    def _calculate_content_relevance(self, query_words: set[str], line: str) -> float:
         """Calculate relevance score for content match."""
         line_words = set(re.findall(r"\w+", line.lower()))
         matches = query_words & line_words
@@ -514,7 +514,7 @@ class CodeIndexer:
         """Ensure cache directory exists."""
         os.makedirs(self.cache_dir, exist_ok=True)
 
-    def _cache_index(self, repo_intel: Dict[str, Any]):
+    def _cache_index(self, repo_intel: dict[str, Any]):
         """Cache index data for faster subsequent loads."""
         cache_file = os.path.join(self.cache_dir, "repo_intel.json")
         try:
@@ -523,7 +523,7 @@ class CodeIndexer:
         except Exception as e:
             print(f"Warning: Failed to cache index: {e}")
 
-    def load_cached_index(self) -> Optional[Dict[str, Any]]:
+    def load_cached_index(self) -> dict[str, Any] | None:
         """Load cached index if available and fresh."""
         cache_file = os.path.join(self.cache_dir, "repo_intel.json")
 
@@ -531,7 +531,7 @@ class CodeIndexer:
             return None
 
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 return json.load(f)
         except Exception as e:
             print(f"Warning: Failed to load cached index: {e}")

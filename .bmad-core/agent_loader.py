@@ -5,14 +5,14 @@ Part of BMAD-METHOD autonomous development system
 
 import importlib.util
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class AgentLoader:
     def __init__(self, agents_dir: str = ".bmad-core/agents"):
         self.agents_dir = agents_dir
-        self.agents: Dict[str, Any] = {}
-        self.agent_instances: Dict[str, Any] = {}
+        self.agents: dict[str, Any] = {}
+        self.agent_instances: dict[str, Any] = {}
         self.load_all_agents()
 
     def load_all_agents(self):
@@ -53,29 +53,29 @@ class AgentLoader:
         except Exception as e:
             print(f"❌ Failed to load agent {agent_name}: {e}")
 
-    def get_agent(self, agent_name: str) -> Optional[Any]:
+    def get_agent(self, agent_name: str) -> Any | None:
         """Get an agent instance by name"""
         return self.agent_instances.get(agent_name.lower())
 
-    def list_agents(self) -> List[str]:
+    def list_agents(self) -> list[str]:
         """List all loaded agents"""
         return list(self.agent_instances.keys())
 
-    def get_agent_commands(self, agent_name: str) -> List[str]:
+    def get_agent_commands(self, agent_name: str) -> list[str]:
         """Get supported commands for an agent"""
         agent = self.get_agent(agent_name)
         if agent and hasattr(agent, "supports_commands"):
             return agent.supports_commands()
         return []
 
-    def get_all_commands(self) -> Dict[str, List[str]]:
+    def get_all_commands(self) -> dict[str, list[str]]:
         """Get all commands from all agents"""
         all_commands = {}
         for agent_name in self.agent_instances.keys():
             all_commands[agent_name] = self.get_agent_commands(agent_name)
         return all_commands
 
-    def is_agent_command(self, text: str) -> tuple[bool, Optional[str]]:
+    def is_agent_command(self, text: str) -> tuple[bool, str | None]:
         """Check if text starts with an agent command (/agent-name)"""
         if text.startswith("/"):
             parts = text.split(" ", 1)

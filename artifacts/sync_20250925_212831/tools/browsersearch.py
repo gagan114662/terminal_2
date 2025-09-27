@@ -1,5 +1,4 @@
 import asyncio
-from typing import Dict, List
 from urllib.parse import urljoin
 
 try:
@@ -15,7 +14,7 @@ class BrowserSearchTool:
     def __init__(self):
         self._offline_mode = True  # Default to offline for tests
         self._test_mode = True
-        self.search_results: Dict[str, List[Dict]] = {}
+        self.search_results: dict[str, list[dict]] = {}
 
     async def search(self, url: str, max_results: int = 20) -> dict:
         # Offline mode - return mock results

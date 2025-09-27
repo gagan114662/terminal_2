@@ -4,7 +4,6 @@ Determines optimal agent workflow based on task complexity
 """
 
 from enum import Enum
-from typing import Dict, List, Tuple
 
 
 class TaskComplexity(Enum):
@@ -88,7 +87,7 @@ class TaskAnalyzer:
             ],
         }
 
-    def analyze_task(self, task_description: str) -> Tuple[TaskComplexity, List[str]]:
+    def analyze_task(self, task_description: str) -> tuple[TaskComplexity, list[str]]:
         """Analyze task and return complexity + recommended agent workflow"""
         task_lower = task_description.lower()
 
@@ -110,7 +109,7 @@ class TaskAnalyzer:
 
         return max_complexity, workflow
 
-    def get_terminal_commands(self, task_description: str) -> List[str]:
+    def get_terminal_commands(self, task_description: str) -> list[str]:
         """Generate terminal commands to verify task analysis"""
         complexity, workflow = self.analyze_task(task_description)
 

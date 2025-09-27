@@ -3,17 +3,13 @@ ValidationEngine - Core validation infrastructure for TermNet
 Automatically verifies build accuracy by running terminal commands
 """
 
-import asyncio
-import json
 import sqlite3
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-from termnet.config import CONFIG
+from typing import Any
 
 
 class ValidationStatus(Enum):
@@ -39,11 +35,11 @@ class ValidationResult:
     status: ValidationStatus
     severity: ValidationSeverity
     message: str
-    details: Optional[str] = None
+    details: str | None = None
     execution_time: float = 0.0
-    command_executed: Optional[str] = None
-    expected_output: Optional[str] = None
-    actual_output: Optional[str] = None
+    command_executed: str | None = None
+    expected_output: str | None = None
+    actual_output: str | None = None
     timestamp: str = ""
 
     def __post_init__(self):
@@ -60,12 +56,12 @@ class ValidationRule:
         self.severity = severity
 
     async def validate(
-        self, project_path: str, context: Dict[str, Any]
+        self, project_path: str, context: dict[str, Any]
     ) -> ValidationResult:
         """Override this method to implement validation logic"""
         raise NotImplementedError("Subclasses must implement validate method")
 
-    def should_run(self, context: Dict[str, Any]) -> bool:
+    def should_run(self, context: dict[str, Any]) -> bool:
         """Override to add conditional logic for when this rule should run"""
         return True
 
@@ -73,8 +69,8 @@ class ValidationRule:
 class ValidationEngine:
     def __init__(self, db_path: str = "termnet_validation.db"):
         self.db_path = db_path
-        self.rules: List[ValidationRule] = []
-        self.results: List[ValidationResult] = []
+        self.rules: list[ValidationRule] = []
+        self.results: list[ValidationResult] = []
         self._init_database()
 
     def _init_database(self):
@@ -128,8 +124,8 @@ class ValidationEngine:
         print(f"🗑️ Removed validation rule: {rule_name}")
 
     async def validate_project(
-        self, project_path: str, context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+        self, project_path: str, context: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """Run all validation rules against a project"""
         if context is None:
             context = {}
@@ -196,7 +192,7 @@ class ValidationEngine:
         # Store results in database
         await self._store_results(summary, context)
 
-        print(f"\n📊 Validation Summary:")
+        print("\n📊 Validation Summary:")
         print(f"  Total Rules: {summary['total_rules']}")
         print(f"  Passed: {summary['passed']} ✅")
         print(f"  Failed: {summary['failed']} ❌")
@@ -207,8 +203,8 @@ class ValidationEngine:
         return summary
 
     def _generate_summary(
-        self, total_time: float, context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, total_time: float, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate validation summary statistics"""
         passed = len([r for r in self.results if r.status == ValidationStatus.PASSED])
         failed = len([r for r in self.results if r.status == ValidationStatus.FAILED])
@@ -239,7 +235,7 @@ class ValidationEngine:
             "timestamp": datetime.now().isoformat(),
         }
 
-    async def _store_results(self, summary: Dict[str, Any], context: Dict[str, Any]):
+    async def _store_results(self, summary: dict[str, Any], context: dict[str, Any]):
         """Store validation results in database"""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -294,8 +290,8 @@ class ValidationEngine:
             print(f"⚠️ Failed to store results in database: {e}")
 
     def get_validation_history(
-        self, project_name: Optional[str] = None, limit: int = 10
-    ) -> List[Dict]:
+        self, project_name: str | None = None, limit: int = 10
+    ) -> list[dict]:
         """Get validation history from database"""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -327,7 +323,7 @@ class ValidationEngine:
             print(f"⚠️ Failed to retrieve validation history: {e}")
             return []
 
-    def get_rule_statistics(self) -> Dict[str, Any]:
+    def get_rule_statistics(self) -> dict[str, Any]:
         """Get statistics about validation rules"""
         return {
             "total_rules": len(self.rules),
@@ -339,7 +335,7 @@ class ValidationEngine:
         }
 
     async def validate_command_output(
-        self, command: str, expected_patterns: List[str], project_path: str
+        self, command: str, expected_patterns: list[str], project_path: str
     ) -> ValidationResult:
         """Helper method to validate command output against expected patterns"""
         from termnet.tools.terminal import TerminalSession

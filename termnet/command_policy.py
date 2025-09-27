@@ -5,12 +5,11 @@ Phase 3 of TermNet validation system: Intelligent command filtering and approval
 
 import json
 import re
-import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from termnet.claims_engine import ClaimsEngine, ClaimSeverity
 
@@ -46,9 +45,9 @@ class PolicyRule:
     decision: PolicyDecision
     reason: str
     severity: ClaimSeverity = ClaimSeverity.MEDIUM
-    evidence_required: List[str] = None  # Types of evidence required
-    conditions: Dict[str, Any] = None  # Additional conditions
-    exceptions: List[str] = None  # Exception patterns
+    evidence_required: list[str] = None  # Types of evidence required
+    conditions: dict[str, Any] = None  # Additional conditions
+    exceptions: list[str] = None  # Exception patterns
 
     def __post_init__(self):
         if self.evidence_required is None:
@@ -66,11 +65,11 @@ class PolicyEvaluation:
     command: str
     agent: str
     decision: PolicyDecision
-    matched_rules: List[PolicyRule]
+    matched_rules: list[PolicyRule]
     reason: str
     severity: ClaimSeverity
-    evidence_required: List[str]
-    suggested_alternatives: List[str]
+    evidence_required: list[str]
+    suggested_alternatives: list[str]
     risk_score: int  # 0-100
     can_override: bool
     timestamp: str = ""
@@ -85,10 +84,10 @@ class AgentPolicy:
 
     def __init__(self, agent_name: str):
         self.agent_name = agent_name
-        self.allowed_categories: Set[CommandCategory] = set()
-        self.blocked_categories: Set[CommandCategory] = set()
-        self.custom_rules: List[PolicyRule] = []
-        self.evidence_requirements: Dict[CommandCategory, List[str]] = {}
+        self.allowed_categories: set[CommandCategory] = set()
+        self.blocked_categories: set[CommandCategory] = set()
+        self.custom_rules: list[PolicyRule] = []
+        self.evidence_requirements: dict[CommandCategory, list[str]] = {}
 
         # Set default policies based on agent type
         self._set_default_policies()
@@ -166,11 +165,11 @@ class AgentPolicy:
 class CommandPolicyEngine:
     """Main policy engine for command evaluation and approval"""
 
-    def __init__(self, claims_engine: Optional[ClaimsEngine] = None):
+    def __init__(self, claims_engine: ClaimsEngine | None = None):
         self.claims_engine = claims_engine or ClaimsEngine()
-        self.rules: List[PolicyRule] = []
-        self.agent_policies: Dict[str, AgentPolicy] = {}
-        self.evaluation_history: List[PolicyEvaluation] = []
+        self.rules: list[PolicyRule] = []
+        self.agent_policies: dict[str, AgentPolicy] = {}
+        self.evaluation_history: list[PolicyEvaluation] = []
 
         # Load default rules
         self._load_default_rules()
@@ -626,7 +625,7 @@ class CommandPolicyEngine:
 
         return int(base_risk * severity_multiplier)
 
-    def _suggest_alternatives(self, command: str) -> List[str]:
+    def _suggest_alternatives(self, command: str) -> list[str]:
         """Suggest safer alternatives for blocked commands"""
         suggestions = []
 
@@ -678,7 +677,7 @@ class CommandPolicyEngine:
         self.agent_policies[agent].custom_rules.append(rule)
         print(f"📝 Added custom rule '{rule.name}' for agent {agent}")
 
-    def get_policy_summary(self) -> Dict[str, Any]:
+    def get_policy_summary(self) -> dict[str, Any]:
         """Get summary of policy configuration"""
         rule_counts = {}
         for rule in self.rules:
@@ -738,7 +737,7 @@ class CommandPolicyEngine:
 
         print(f"📄 Policy exported to {file_path}")
 
-    def create_evidence_claim(self, evaluation: PolicyEvaluation) -> Optional[str]:
+    def create_evidence_claim(self, evaluation: PolicyEvaluation) -> str | None:
         """Create a claim for commands requiring evidence"""
         if evaluation.decision != PolicyDecision.REQUIRE_EVIDENCE:
             return None

@@ -9,7 +9,7 @@ import hashlib
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
 @dataclass
@@ -29,10 +29,10 @@ class TaskNode:
 
     id: str
     description: str
-    dependencies: List[str]
+    dependencies: list[str]
     risk: str  # "low", "medium", "high"
-    done_criteria: List[str]
-    estimated_files: List[str] = None
+    done_criteria: list[str]
+    estimated_files: list[str] = None
 
     def __post_init__(self):
         if self.estimated_files is None:
@@ -58,7 +58,7 @@ class WorkPlanner:
         self.max_tasks = max_tasks
         self.seed = seed or 42
 
-    def plan(self, goal: str, repo_intel: Dict[str, Any]) -> Dict[str, Any]:
+    def plan(self, goal: str, repo_intel: dict[str, Any]) -> dict[str, Any]:
         """
         Create a task execution plan for the given goal.
 
@@ -91,7 +91,7 @@ class WorkPlanner:
 
         return task_graph
 
-    def test_plan(self, task_graph: Dict[str, Any]) -> List[TestCaseSpec]:
+    def test_plan(self, task_graph: dict[str, Any]) -> list[TestCaseSpec]:
         """
         Generate test cases to validate task completion.
 
@@ -145,7 +145,7 @@ class WorkPlanner:
         return tests
 
     def changeplan_md(
-        self, goal: str, task_graph: Dict[str, Any], tests: List[TestCaseSpec]
+        self, goal: str, task_graph: dict[str, Any], tests: list[TestCaseSpec]
     ) -> str:
         """
         Generate markdown documentation for the change plan.
@@ -214,7 +214,7 @@ class WorkPlanner:
 
         return md_content
 
-    def _hash_inputs(self, goal: str, repo_intel: Dict[str, Any]) -> str:
+    def _hash_inputs(self, goal: str, repo_intel: dict[str, Any]) -> str:
         """Generate deterministic hash of planning inputs."""
         # Create stable representation for hashing
         stable_input = {
@@ -228,8 +228,8 @@ class WorkPlanner:
         return hashlib.sha256(input_str.encode()).hexdigest()[:12]
 
     def _decompose_goal(
-        self, goal: str, repo_intel: Dict[str, Any], plan_hash: str
-    ) -> List[TaskNode]:
+        self, goal: str, repo_intel: dict[str, Any], plan_hash: str
+    ) -> list[TaskNode]:
         """Decompose goal into executable tasks."""
         tasks = []
 
@@ -324,7 +324,7 @@ class WorkPlanner:
 
         return tasks[: self.max_tasks]  # Enforce safety limit
 
-    def _build_task_graph(self, tasks: List[TaskNode]) -> Dict[str, Any]:
+    def _build_task_graph(self, tasks: list[TaskNode]) -> dict[str, Any]:
         """Build task graph data structure."""
         nodes = {task.id: asdict(task) for task in tasks}
 
@@ -336,7 +336,7 @@ class WorkPlanner:
 
         return {"nodes": nodes, "edges": edges}
 
-    def _estimate_complexity(self, tasks: List[TaskNode]) -> str:
+    def _estimate_complexity(self, tasks: list[TaskNode]) -> str:
         """Estimate overall complexity of the plan."""
         risk_scores = {"low": 1, "medium": 3, "high": 5}
         total_score = sum(risk_scores.get(task.risk, 1) for task in tasks)
@@ -358,8 +358,8 @@ class WorkPlanner:
             return "python -c 'print(\"Task validation placeholder\")'"
 
     def _topological_sort(
-        self, nodes: Dict[str, Any], edges: List[Dict[str, str]]
-    ) -> List[str]:
+        self, nodes: dict[str, Any], edges: list[dict[str, str]]
+    ) -> list[str]:
         """Return tasks in dependency-safe execution order."""
         # Build adjacency list
         graph = {node_id: [] for node_id in nodes}

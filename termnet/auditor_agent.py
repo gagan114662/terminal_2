@@ -5,16 +5,13 @@ Continuously monitors and verifies all agent claims with evidence
 
 import asyncio
 import json
-import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
-from termnet.claims_engine import (Claim, ClaimsEngine, ClaimSeverity,
-                                   ClaimStatus)
-from termnet.command_lifecycle import CommandLifecycle
+from termnet.claims_engine import Claim, ClaimsEngine, ClaimSeverity, ClaimStatus
 from termnet.sandbox import SandboxManager
 from termnet.validation_engine import ValidationEngine, ValidationStatus
 
@@ -36,7 +33,7 @@ class AuditFinding:
     severity: AuditSeverity
     category: str  # "false_claim", "missing_evidence", "evidence_tampered", "success_token_mismatch"
     description: str
-    details: Dict[str, Any]
+    details: dict[str, Any]
     recommendation: str
     created_at: str = ""
 
@@ -56,13 +53,13 @@ class ClaimAuditor:
     def __init__(
         self,
         claims_engine: ClaimsEngine,
-        validation_engine: Optional[ValidationEngine] = None,
+        validation_engine: ValidationEngine | None = None,
     ):
         self.claims_engine = claims_engine
         self.validation_engine = validation_engine
         self.sandbox_manager = SandboxManager()
 
-    async def audit_claim(self, claim: Claim) -> List[AuditFinding]:
+    async def audit_claim(self, claim: Claim) -> list[AuditFinding]:
         """Perform comprehensive audit of a single claim"""
         findings = []
 
@@ -83,7 +80,7 @@ class ClaimAuditor:
 
         return findings
 
-    async def _audit_evidence_integrity(self, claim: Claim) -> List[AuditFinding]:
+    async def _audit_evidence_integrity(self, claim: Claim) -> list[AuditFinding]:
         """Verify that all evidence files exist and haven't been tampered with"""
         findings = []
 
@@ -158,7 +155,7 @@ class ClaimAuditor:
 
         return findings
 
-    async def _audit_success_tokens(self, claim: Claim) -> List[AuditFinding]:
+    async def _audit_success_tokens(self, claim: Claim) -> list[AuditFinding]:
         """Verify success tokens in command outputs match claimed results"""
         findings = []
 
@@ -182,7 +179,7 @@ class ClaimAuditor:
             for evidence in claim.evidence:
                 if evidence.type in ["log", "output"]:
                     try:
-                        with open(evidence.path, "r") as f:
+                        with open(evidence.path) as f:
                             content = f.read()
                             for token in expected_tokens:
                                 if token.lower() in content.lower():
@@ -208,7 +205,7 @@ class ClaimAuditor:
 
         return findings
 
-    async def _audit_repeatability(self, claim: Claim) -> List[AuditFinding]:
+    async def _audit_repeatability(self, claim: Claim) -> list[AuditFinding]:
         """Test if claimed command can be repeated with same results"""
         findings = []
 
@@ -257,7 +254,7 @@ class ClaimAuditor:
 
         return findings
 
-    async def _audit_cross_references(self, claim: Claim) -> List[AuditFinding]:
+    async def _audit_cross_references(self, claim: Claim) -> list[AuditFinding]:
         """Cross-reference claim with other validation systems"""
         findings = []
 
@@ -280,7 +277,7 @@ class ClaimAuditor:
                                 claim_id=claim.id,
                                 severity=AuditSeverity.HIGH,
                                 category="false_claim",
-                                description=f"Claim conflicts with validation system",
+                                description="Claim conflicts with validation system",
                                 details={
                                     "validation_status": validation.get("status"),
                                     "validation_message": validation.get("message", ""),
@@ -290,13 +287,13 @@ class ClaimAuditor:
                             )
                         )
 
-            except Exception as e:
+            except Exception:
                 # Non-critical - just log for debugging
                 pass
 
         return findings
 
-    async def _audit_timeline_consistency(self, claim: Claim) -> List[AuditFinding]:
+    async def _audit_timeline_consistency(self, claim: Claim) -> list[AuditFinding]:
         """Check for timeline inconsistencies in evidence"""
         findings = []
 
@@ -325,7 +322,7 @@ class ClaimAuditor:
                         claim_id=claim.id,
                         severity=AuditSeverity.MEDIUM,
                         category="timeline_inconsistency",
-                        description=f"Evidence predates claim by more than 1 minute",
+                        description="Evidence predates claim by more than 1 minute",
                         details={
                             "evidence_path": evidence_path,
                             "evidence_time": evidence_time.isoformat(),
@@ -344,12 +341,12 @@ class AuditorAgent:
     def __init__(
         self,
         claims_engine: ClaimsEngine,
-        validation_engine: Optional[ValidationEngine] = None,
+        validation_engine: ValidationEngine | None = None,
     ):
         self.claims_engine = claims_engine
         self.validation_engine = validation_engine
         self.auditor = ClaimAuditor(claims_engine, validation_engine)
-        self.findings: List[AuditFinding] = []
+        self.findings: list[AuditFinding] = []
         self.is_running = False
         self.audit_interval = 300  # 5 minutes
         self.last_audit = None
@@ -425,7 +422,7 @@ class AuditorAgent:
         self.last_audit = datetime.now()
         print(f"✅ Audit cycle completed - {len(new_findings)} new findings")
 
-    async def _store_findings(self, findings: List[AuditFinding]):
+    async def _store_findings(self, findings: list[AuditFinding]):
         """Store findings in database"""
         import sqlite3
 
@@ -454,7 +451,7 @@ class AuditorAgent:
         except Exception as e:
             print(f"❌ Failed to store audit findings: {e}")
 
-    async def _report_critical_findings(self, findings: List[AuditFinding]):
+    async def _report_critical_findings(self, findings: list[AuditFinding]):
         """Report critical findings immediately"""
         print(f"🚨 CRITICAL AUDIT FINDINGS ({len(findings)}):")
         for finding in findings:
@@ -476,7 +473,7 @@ class AuditorAgent:
                     claim.error_message = finding.description
                     print(f"    → Claim {finding.claim_id} marked as FAILED")
 
-    def get_audit_summary(self) -> Dict[str, Any]:
+    def get_audit_summary(self) -> dict[str, Any]:
         """Get summary of audit status and findings"""
 
         # Count findings by severity and category
@@ -501,7 +498,7 @@ class AuditorAgent:
             "findings_db": "termnet_audit_findings.db",
         }
 
-    async def audit_specific_claim(self, claim_id: str) -> List[AuditFinding]:
+    async def audit_specific_claim(self, claim_id: str) -> list[AuditFinding]:
         """Audit a specific claim on demand"""
         claims = self.claims_engine.get_claims()
         claim = next((c for c in claims if c.id == claim_id), None)

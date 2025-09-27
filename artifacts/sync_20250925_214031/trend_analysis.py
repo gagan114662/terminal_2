@@ -8,10 +8,9 @@ import logging
 import math
 import os
 import sqlite3
-from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,8 +24,8 @@ class Metric:
     category: str
     name: str
     value: float
-    metadata: Dict[str, Any]
-    tags: List[str]
+    metadata: dict[str, Any]
+    tags: list[str]
 
 
 @dataclass
@@ -38,9 +37,9 @@ class Trend:
     direction: str  # 'increasing', 'decreasing', 'stable'
     slope: float
     correlation: float
-    forecast: List[float]
+    forecast: list[float]
     confidence: float
-    anomalies: List[Dict[str, Any]]
+    anomalies: list[dict[str, Any]]
 
 
 class TrendAnalyzer:
@@ -111,8 +110,8 @@ class TrendAnalyzer:
         category: str,
         name: str,
         value: float,
-        metadata: Optional[Dict] = None,
-        tags: Optional[List[str]] = None,
+        metadata: dict | None = None,
+        tags: list[str] | None = None,
     ):
         """Record a new metric data point"""
         metric = Metric(
@@ -146,9 +145,9 @@ class TrendAnalyzer:
         self,
         category: str,
         name: str,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-    ) -> List[Tuple[str, float]]:
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+    ) -> list[tuple[str, float]]:
         """Retrieve metrics for analysis"""
         query = """
             SELECT timestamp, value FROM metrics
@@ -172,7 +171,7 @@ class TrendAnalyzer:
 
     def analyze_trend(
         self, category: str, name: str, window_days: int = 7
-    ) -> Optional[Trend]:
+    ) -> Trend | None:
         """Analyze trend for a specific metric"""
         start_time = datetime.now() - timedelta(days=window_days)
         data = self.get_metrics(category, name, start_time)
@@ -192,7 +191,7 @@ class TrendAnalyzer:
         n = len(x)
         sum_x = sum(x)
         sum_y = sum(y)
-        sum_xy = sum(xi * yi for xi, yi in zip(x, y))
+        sum_xy = sum(xi * yi for xi, yi in zip(x, y, strict=False))
         sum_x2 = sum(xi * xi for xi in x)
 
         slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x)
@@ -202,7 +201,9 @@ class TrendAnalyzer:
         mean_x = sum_x / n
         mean_y = sum_y / n
 
-        numerator = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
+        numerator = sum(
+            (xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y, strict=False)
+        )
         denominator_x = math.sqrt(sum((xi - mean_x) ** 2 for xi in x))
         denominator_y = math.sqrt(sum((yi - mean_y) ** 2 for yi in y))
 
@@ -276,7 +277,7 @@ class TrendAnalyzer:
 
         return trend
 
-    def analyze_patterns(self, window_days: int = 30) -> Dict[str, Any]:
+    def analyze_patterns(self, window_days: int = 30) -> dict[str, Any]:
         """Analyze patterns across all metrics"""
         start_time = datetime.now() - timedelta(days=window_days)
 
@@ -469,7 +470,7 @@ class TrendAnalyzer:
 
         return report
 
-    def get_statistics(self, category: str = None) -> Dict[str, Any]:
+    def get_statistics(self, category: str = None) -> dict[str, Any]:
         """Get statistical summary"""
         with sqlite3.connect(self.db_path) as conn:
             if category:
@@ -528,7 +529,7 @@ class TrendAnalyzer:
         request_id: str = None,
     ):
         """Collect minimal telemetry metrics for a completed request (opt-in via TERMNET_METRICS=1)"""
-        if not os.getenv("TERMNET_METRICS", "0") == "1":
+        if os.getenv("TERMNET_METRICS", "0") != "1":
             return
 
         # Prepare metrics data
@@ -549,7 +550,7 @@ class TrendAnalyzer:
         try:
             # Read existing data or start with empty list
             if os.path.exists(metrics_file):
-                with open(metrics_file, "r") as f:
+                with open(metrics_file) as f:
                     all_metrics = json.load(f)
             else:
                 all_metrics = []

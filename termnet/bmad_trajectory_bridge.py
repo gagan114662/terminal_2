@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import time
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any
 
 from termnet.trajectory_logger import TrajectoryStep, log_step, now_iso
 
@@ -32,9 +32,9 @@ class BMADTrajectoryBridge:
 
     def __init__(
         self,
-        run_id: Optional[str] = None,
-        trace_id: Optional[str] = None,
-        phase_map: Optional[Dict[str, str]] = None,
+        run_id: str | None = None,
+        trace_id: str | None = None,
+        phase_map: dict[str, str] | None = None,
         redact_fn=None,
     ) -> None:
         self.run_id = run_id or f"req-{uuid.uuid4().hex[:12]}"
@@ -50,10 +50,10 @@ class BMADTrajectoryBridge:
         self._t_last = now
         return dt
 
-    def _phase_for(self, tag: str) -> Optional[str]:
+    def _phase_for(self, tag: str) -> str | None:
         return self.phase_map.get(tag.lower())
 
-    def from_stream(self, tag: str, payload: Dict[str, Any] | Any) -> None:
+    def from_stream(self, tag: str, payload: dict[str, Any] | Any) -> None:
         """Call this for each (tag, payload) produced by BMAD streams."""
         phase = self._phase_for(tag)
         if not phase:
@@ -83,7 +83,7 @@ class BMADTrajectoryBridge:
         self.step_index += 1
 
     # Optional callback-style API, if your BMAD core emits events via hooks
-    def on_event(self, event: Dict[str, Any]) -> None:
+    def on_event(self, event: dict[str, Any]) -> None:
         tag = event.get("tag") or event.get("type") or ""
         self.from_stream(tag, event)
 
@@ -98,7 +98,7 @@ PHASE_MAP = {
 }
 
 
-def map_event_to_step(event: Dict[str, Any]) -> TrajectoryStep:
+def map_event_to_step(event: dict[str, Any]) -> TrajectoryStep:
     """
     Minimal adapter that tests expect:
     input: {"run_id","trace_id","index","phase","latency_ms","tool","args"}

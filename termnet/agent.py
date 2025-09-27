@@ -4,7 +4,6 @@ import asyncio
 import os
 import uuid
 from datetime import datetime
-from typing import Dict, List
 
 # Local imports
 try:
@@ -267,7 +266,7 @@ class TermNetAgent:
             (res or {}).get("stdout", "") if isinstance(res, dict) else str(res or "")
         )
 
-    def _get_tool_definitions(self) -> List[Dict]:
+    def _get_tool_definitions(self) -> list[dict]:
         """Get tool definitions from tool loader"""
         return self.tool_loader.get_tool_definitions()
 
@@ -277,12 +276,12 @@ class TermNetAgent:
         Handles both sync and async methods. Returns dict or str from tool.
         """
         if hasattr(tool, "execute_command"):
-            fn = getattr(tool, "execute_command")
+            fn = tool.execute_command
             if asyncio.iscoroutinefunction(fn):
                 return await fn(*args, **kwargs)
             return fn(*args, **kwargs)
         elif hasattr(tool, "run"):
-            fn = getattr(tool, "run")
+            fn = tool.run
             if asyncio.iscoroutinefunction(fn):
                 return await fn(*args, **kwargs)
             return fn(*args, **kwargs)
@@ -299,7 +298,7 @@ class TermNetAgent:
             return res
         return {"stdout": str(res), "stderr": "", "exit_code": 0}
 
-    async def _execute_tool(self, tool_name: str, args: Dict, description: str) -> str:
+    async def _execute_tool(self, tool_name: str, args: dict, description: str) -> str:
         """Execute a tool and return its result"""
         try:
             tool_instance = self.tool_loader.get_tool_instance(tool_name)

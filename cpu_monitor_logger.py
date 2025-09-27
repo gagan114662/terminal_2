@@ -51,9 +51,9 @@ def monitor_cpu(duration=30, interval=2):
         cpu_info = {
             "CPU Count (Logical)": psutil.cpu_count(logical=True),
             "CPU Count (Physical)": psutil.cpu_count(logical=False),
-            "CPU Frequency": f"{psutil.cpu_freq().current:.2f} MHz"
-            if psutil.cpu_freq()
-            else "N/A",
+            "CPU Frequency": (
+                f"{psutil.cpu_freq().current:.2f} MHz" if psutil.cpu_freq() else "N/A"
+            ),
         }
 
         f.write("\nSystem Information:\n")

@@ -6,7 +6,7 @@ import inspect
 import json
 import os
 from types import ModuleType
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 def _safe_iter_module_members(module: ModuleType):
@@ -58,8 +58,8 @@ class ToolLoader:
         self.tools_directory = tools_directory or os.path.join(
             os.path.dirname(__file__), "tools"
         )
-        self.loaded_tools: Dict[str, Any] = {}
-        self.tool_instances: Dict[str, Any] = {}
+        self.loaded_tools: dict[str, Any] = {}
+        self.tool_instances: dict[str, Any] = {}
 
     # ---------------- loading ----------------
 
@@ -83,7 +83,7 @@ class ToolLoader:
         except Exception as e:
             print(f"Error scanning tools directory: {e}")
 
-    def _load_tool_module(self, module_basename: str) -> Optional[ModuleType]:
+    def _load_tool_module(self, module_basename: str) -> ModuleType | None:
         try:
             module = importlib.import_module(f"termnet.tools.{module_basename}")
         except Exception as e:
@@ -141,8 +141,8 @@ class ToolLoader:
     def get_tool_definitions(self, registry_path: str = "toolregistry.json"):
         """Get tool definitions, matching test contract exactly."""
         try:
-            raw = json.load(open(registry_path, "r", encoding="utf-8"))
-        except Exception as e:
+            raw = json.load(open(registry_path, encoding="utf-8"))
+        except Exception:
             # Silent fallback: generate from loaded_tools (for tests)
             out = []
             for name, tool_data in self.loaded_tools.items():

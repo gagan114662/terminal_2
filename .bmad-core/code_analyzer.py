@@ -4,12 +4,10 @@ Semantic analysis, dependency mapping, and pattern recognition
 """
 
 import ast
-import json
 import os
-import re
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 
 @dataclass
@@ -20,8 +18,8 @@ class CodeEntity:
     type: str  # 'class', 'function', 'variable', 'import'
     file_path: str
     line_number: int
-    dependencies: List[str]
-    docstring: Optional[str] = None
+    dependencies: list[str]
+    docstring: str | None = None
     complexity: int = 0
 
 
@@ -29,10 +27,10 @@ class CodeEntity:
 class DependencyMap:
     """Maps dependencies between code entities"""
 
-    imports: Dict[str, List[str]]  # file -> [imported modules]
-    functions: Dict[str, List[str]]  # file -> [function names]
-    classes: Dict[str, List[str]]  # file -> [class names]
-    cross_references: Dict[str, List[str]]  # entity -> [entities that use it]
+    imports: dict[str, list[str]]  # file -> [imported modules]
+    functions: dict[str, list[str]]  # file -> [function names]
+    classes: dict[str, list[str]]  # file -> [class names]
+    cross_references: dict[str, list[str]]  # entity -> [entities that use it]
 
 
 class CodeAnalyzer:
@@ -40,11 +38,11 @@ class CodeAnalyzer:
 
     def __init__(self, project_path: str = "."):
         self.project_path = project_path
-        self.entities: List[CodeEntity] = []
+        self.entities: list[CodeEntity] = []
         self.dependency_map = DependencyMap({}, {}, {}, {})
         self.file_metrics = {}
 
-    def analyze_project(self) -> Dict[str, Any]:
+    def analyze_project(self) -> dict[str, Any]:
         """Perform comprehensive project analysis"""
         analysis_results = {
             "files_analyzed": 0,
@@ -84,9 +82,9 @@ class CodeAnalyzer:
                                 "imports"
                             ]
                         if file_analysis["functions"]:
-                            self.dependency_map.functions[
-                                relative_path
-                            ] = file_analysis["functions"]
+                            self.dependency_map.functions[relative_path] = (
+                                file_analysis["functions"]
+                            )
                         if file_analysis["classes"]:
                             self.dependency_map.classes[relative_path] = file_analysis[
                                 "classes"
@@ -110,9 +108,9 @@ class CodeAnalyzer:
 
     def _analyze_python_file(
         self, file_path: str, relative_path: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze a single Python file using AST"""
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         try:
@@ -188,7 +186,7 @@ class CodeAnalyzer:
         self.entities.extend(analysis["entities"])
         return analysis
 
-    def _extract_function_dependencies(self, func_node: ast.FunctionDef) -> List[str]:
+    def _extract_function_dependencies(self, func_node: ast.FunctionDef) -> list[str]:
         """Extract dependencies from function node"""
         dependencies = []
 
@@ -204,7 +202,7 @@ class CodeAnalyzer:
 
         return list(set(dependencies))  # Remove duplicates
 
-    def _extract_class_dependencies(self, class_node: ast.ClassDef) -> List[str]:
+    def _extract_class_dependencies(self, class_node: ast.ClassDef) -> list[str]:
         """Extract dependencies from class node"""
         dependencies = []
 
@@ -238,7 +236,7 @@ class CodeAnalyzer:
 
         self.dependency_map.cross_references = dict(cross_refs)
 
-    def _identify_patterns(self) -> List[Dict[str, Any]]:
+    def _identify_patterns(self) -> list[dict[str, Any]]:
         """Identify common code patterns"""
         patterns = []
 
@@ -292,7 +290,7 @@ class CodeAnalyzer:
 
         return patterns
 
-    def _calculate_complexity_metrics(self) -> Dict[str, Any]:
+    def _calculate_complexity_metrics(self) -> dict[str, Any]:
         """Calculate various complexity metrics"""
         metrics = {
             "total_entities": len(self.entities),
@@ -331,8 +329,8 @@ class CodeAnalyzer:
         return metrics
 
     def semantic_search(
-        self, query: str, entity_types: List[str] = None
-    ) -> List[CodeEntity]:
+        self, query: str, entity_types: list[str] = None
+    ) -> list[CodeEntity]:
         """Perform semantic search across analyzed entities"""
         query_terms = query.lower().split()
         results = []
@@ -373,7 +371,7 @@ class CodeAnalyzer:
         results.sort(key=lambda x: x.search_score, reverse=True)
         return results[:20]  # Return top 20
 
-    def get_verification_commands(self) -> List[str]:
+    def get_verification_commands(self) -> list[str]:
         """Get terminal commands to verify code analyzer"""
         return [
             "echo '📊 Testing Code Analyzer'",

@@ -6,7 +6,7 @@ Generates verifiable terminal commands for all BMAD operations
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
 class CommandVerifier:
@@ -17,8 +17,8 @@ class CommandVerifier:
         self.verification_log = ".bmad-core/verification_log.json"
 
     def generate_test_commands(
-        self, operation: str, context: Dict[str, Any] = None
-    ) -> List[str]:
+        self, operation: str, context: dict[str, Any] = None
+    ) -> list[str]:
         """Generate terminal commands to verify specific operations"""
 
         commands = {
@@ -58,7 +58,7 @@ class CommandVerifier:
 
         return commands[operation]
 
-    def verify_installation(self) -> List[str]:
+    def verify_installation(self) -> list[str]:
         """Generate commands to verify entire enhanced system"""
         return [
             "echo '🧪 TermNet Enhanced System Verification'",
@@ -84,7 +84,7 @@ class CommandVerifier:
         ]
 
     def log_verification(
-        self, operation: str, commands: List[str], success: bool = True
+        self, operation: str, commands: list[str], success: bool = True
     ):
         """Log verification commands and results"""
         log_entry = {

@@ -4,9 +4,6 @@ Simple test script for the blog application.
 Run this to verify basic functionality.
 """
 
-import json
-from time import sleep
-
 import requests
 
 BASE_URL = "http://localhost:5000"

@@ -1,13 +1,17 @@
 import os
-from datetime import datetime, timedelta, timezone
-from functools import wraps
+from datetime import datetime, timedelta
 
 from flask import Flask, jsonify, request
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
-from flask_jwt_extended import (JWTManager, create_access_token,
-                                create_refresh_token, get_jwt,
-                                get_jwt_identity, jwt_required)
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    create_refresh_token,
+    get_jwt,
+    get_jwt_identity,
+    jwt_required,
+)
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)

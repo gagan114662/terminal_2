@@ -24,7 +24,7 @@ class TrajectoryStep:
         timestamp: str,
         latency_ms: int,
         tool_name: str,
-        tool_args_redacted: Dict[str, Any],
+        tool_args_redacted: dict[str, Any],
     ):
         self.run_id = run_id
         self.trace_id = trace_id
