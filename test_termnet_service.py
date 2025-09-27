@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 """Minimal tests for TermNet FastAPI service."""
 
+import json
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, AsyncMock, patch
-import json
 
 # Mock dependencies before import
-with patch("redis.asyncio.from_url") as mock_redis, \
-     patch("sqlalchemy.create_engine") as mock_engine, \
-     patch("faiss.IndexFlatL2") as mock_faiss:
-
+with (
+    patch("redis.asyncio.from_url") as mock_redis,
+    patch("sqlalchemy.create_engine") as mock_engine,
+    patch("faiss.IndexFlatL2") as mock_faiss,
+):
     mock_redis.return_value = AsyncMock()
     mock_engine.return_value = MagicMock()
     mock_faiss.return_value = MagicMock()
 
     from termnet_service import app
+
 
 @pytest.fixture
 def client():
@@ -34,10 +37,11 @@ def client():
             "reasoning": {"task": "test", "plan": "Execute test"},
             "actions": {"actions": ["test_action"], "status": "completed"},
             "observations": {"observations": "Executed 1 actions", "success": True},
-            "grounding": {"grounded": True, "score": 0.95}
+            "grounding": {"grounded": True, "score": 0.95},
         }
 
         yield test_client
+
 
 def test_health_endpoint(client):
     """Test health check endpoint."""
@@ -49,12 +53,13 @@ def test_health_endpoint(client):
     assert "capabilities" in data
     assert "endpoints" in data
 
+
 def test_run_endpoint(client):
     """Test /run endpoint."""
     request_data = {
         "task": "test task",
         "context": {"key": "value"},
-        "tools": ["tool1"]
+        "tools": ["tool1"],
     }
 
     with patch("termnet_service.SessionLocal") as mock_session:
@@ -69,6 +74,7 @@ def test_run_endpoint(client):
         assert "result" in data
         assert "duration" in data
         assert data["grounding_score"] == 0.95
+
 
 def test_trace_endpoint(client):
     """Test /trace/{id} endpoint."""
@@ -98,6 +104,7 @@ def test_trace_endpoint(client):
         assert data["task"] == "test task"
         assert data["grounding_score"] == 0.95
 
+
 def test_trace_not_found(client):
     """Test /trace/{id} with non-existent trace."""
     with patch("termnet_service.SessionLocal") as mock_session:
@@ -110,6 +117,7 @@ def test_trace_not_found(client):
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
+
 def test_metrics_endpoint(client):
     """Test /metrics endpoint."""
     response = client.get("/metrics")
@@ -117,24 +125,21 @@ def test_metrics_endpoint(client):
     # Metrics should return Prometheus format text
     assert response.headers["content-type"] == "text/plain; charset=utf-8"
 
+
 def test_run_with_cache_hit(client):
     """Test /run with cached result."""
     cached_result = {
         "reasoning": {"cached": True},
         "actions": {"cached": True},
         "observations": {"cached": True},
-        "grounding": {"grounded": True, "score": 0.88}
+        "grounding": {"grounded": True, "score": 0.88},
     }
 
     # Mock agent run to return cached result
     app.state.agent.run.return_value = cached_result
     app.state.redis.get.return_value = json.dumps(cached_result)
 
-    request_data = {
-        "task": "cached task",
-        "context": {},
-        "tools": []
-    }
+    request_data = {"task": "cached task", "context": {}, "tools": []}
 
     with patch("termnet_service.SessionLocal") as mock_session:
         mock_db = MagicMock()
@@ -146,15 +151,12 @@ def test_run_with_cache_hit(client):
         data = response.json()
         assert data["grounding_score"] == 0.88
 
+
 def test_run_error_handling(client):
     """Test /run error handling."""
     app.state.agent.run.side_effect = Exception("Test error")
 
-    request_data = {
-        "task": "error task",
-        "context": {},
-        "tools": []
-    }
+    request_data = {"task": "error task", "context": {}, "tools": []}
 
     with patch("termnet_service.SessionLocal") as mock_session:
         mock_db = MagicMock()
@@ -164,6 +166,7 @@ def test_run_error_handling(client):
 
         assert response.status_code == 500
         assert "Test error" in response.json()["detail"]
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
