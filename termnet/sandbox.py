@@ -7,13 +7,11 @@ import asyncio
 import json
 import os
 import resource
-import signal
 import tempfile
 import time
 from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import psutil
 
@@ -366,9 +364,11 @@ class ProcessSandbox:
                 "cpu_percent": current_process.cpu_percent(),
                 "memory_mb": current_process.memory_info().rss / (1024 * 1024),
                 "num_threads": current_process.num_threads(),
-                "num_fds": current_process.num_fds()
-                if hasattr(current_process, "num_fds")
-                else 0,
+                "num_fds": (
+                    current_process.num_fds()
+                    if hasattr(current_process, "num_fds")
+                    else 0
+                ),
                 "create_time": current_process.create_time(),
             }
         except Exception as e:
@@ -648,7 +648,7 @@ class ContainerSandbox:
                         "block_io": block.strip(),
                     }
 
-        except Exception as e:
+        except Exception:
             pass
 
         return {}
@@ -790,7 +790,9 @@ class SandboxManager:
                 "network": limits.network,
                 "time_limit": limits.time_limit,
             },
-            "recommended_sandbox": SandboxType.CONTAINER.value
-            if security_level in [SecurityLevel.ISOLATED, SecurityLevel.RESTRICTED]
-            else SandboxType.PROCESS.value,
+            "recommended_sandbox": (
+                SandboxType.CONTAINER.value
+                if security_level in [SecurityLevel.ISOLATED, SecurityLevel.RESTRICTED]
+                else SandboxType.PROCESS.value
+            ),
         }

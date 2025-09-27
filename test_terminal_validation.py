@@ -18,10 +18,10 @@ async def main():
 
     # Show validation engine details if available
     if t.validation_engine:
-        print(f"   - Validation engine initialized")
-        print(f"   - Database: termnet_terminal_validation.db")
+        print("   - Validation engine initialized")
+        print("   - Database: termnet_terminal_validation.db")
     else:
-        print(f"   - Validation engine not available")
+        print("   - Validation engine not available")
 
     # Test executing a safe command
     print("\n🔧 Testing command execution with validation:")
@@ -38,7 +38,7 @@ async def main():
 
     # Test ls command
     result, _, _ = await t.execute_command("ls -la | head -5")
-    print(f"\n📋 Directory listing (first 5 items):")
+    print("\n📋 Directory listing (first 5 items):")
     print(result)
 
 

@@ -46,7 +46,7 @@ class Scratchpad:
         elif action in ("read_all", "read", "read_all_notes"):
             if not self._notes:
                 return "📖 Scratchpad is empty.", 0, True
-            notes_text = "\n".join(f"{i+1}. {n}" for i, n in enumerate(self._notes))
+            notes_text = "\n".join(f"{i + 1}. {n}" for i, n in enumerate(self._notes))
             return f"📖 Scratchpad contents:\n{notes_text}", 0, True
 
         elif action == "clear":
@@ -142,9 +142,9 @@ class ScratchpadTool:
                     {
                         "key": key,
                         "content": content,
-                        "match_type": "key"
-                        if query_lower in key.lower()
-                        else "content",
+                        "match_type": (
+                            "key" if query_lower in key.lower() else "content"
+                        ),
                     }
                 )
 

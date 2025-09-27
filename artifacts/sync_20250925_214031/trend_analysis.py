@@ -8,8 +8,7 @@ import logging
 import math
 import os
 import sqlite3
-from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 

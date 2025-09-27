@@ -7,13 +7,12 @@ Follows Google AI best practices with comprehensive safety checks and rollback c
 
 import json
 import logging
-import os
 import shutil
 import tempfile
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from .code_indexer import CodeIndexer
 from .edit_engine import EditEngine
@@ -598,9 +597,9 @@ class Autopilot:
 {goal}
 
 ## Implementation Details
-- Total tasks: {plan['total_tasks']}
-- Complexity: {plan.get('estimated_complexity', 'medium')}
-- Plan hash: {plan['plan_hash']}
+- Total tasks: {plan["total_tasks"]}
+- Complexity: {plan.get("estimated_complexity", "medium")}
+- Plan hash: {plan["plan_hash"]}
 
 ## Changes Made
 This PR was generated autonomously by TermNet following Google AI best practices.
@@ -650,8 +649,10 @@ Automated tests have been executed as part of the implementation process.
                                 shutil.rmtree(dest)
                             else:
                                 dest.unlink()
-                        shutil.copytree(item, dest) if item.is_dir() else shutil.copy2(
-                            item, dest
+                        (
+                            shutil.copytree(item, dest)
+                            if item.is_dir()
+                            else shutil.copy2(item, dest)
                         )
 
             # Reset git state

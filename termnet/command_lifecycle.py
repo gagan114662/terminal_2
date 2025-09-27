@@ -4,20 +4,16 @@ Phase 3 of TermNet validation system: Plan → Preview → Simulate → Execute 
 """
 
 import asyncio
-import json
 import os
 import re
-import subprocess
-import tempfile
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from termnet.claims_engine import (Claim, ClaimsEngine, ClaimSeverity,
-                                   EvidenceCollector)
+from termnet.claims_engine import Claim, ClaimsEngine, ClaimSeverity, EvidenceCollector
 
 
 class StageStatus(Enum):
@@ -189,7 +185,9 @@ class CommandLifecycle:
             stage.output = f"Planned execution of: {execution.command}"
             stage.status = StageStatus.COMPLETED
 
-            print(f"📋 Plan: {execution.command} (Risk: {plan_data['risk_assessment']})")
+            print(
+                f"📋 Plan: {execution.command} (Risk: {plan_data['risk_assessment']})"
+            )
 
         except Exception as e:
             stage.status = StageStatus.FAILED
@@ -328,7 +326,7 @@ class CommandLifecycle:
         except asyncio.TimeoutError:
             stage.status = StageStatus.FAILED
             stage.error = f"Command timed out after {timeout}s"
-            print(f"⏰ Execute: Command timed out")
+            print("⏰ Execute: Command timed out")
 
         except Exception as e:
             stage.status = StageStatus.FAILED
@@ -390,7 +388,7 @@ class CommandLifecycle:
             else:
                 stage.status = StageStatus.FAILED
                 stage.error = "No success tokens found in output"
-                print(f"❌ Verify: No success indicators found")
+                print("❌ Verify: No success indicators found")
 
         except Exception as e:
             stage.status = StageStatus.FAILED
@@ -500,7 +498,7 @@ class CommandLifecycle:
 
         if (
             any(op in command for op in ["mv", "cp", "rm"])
-            and not "--dry-run" in command
+            and "--dry-run" not in command
         ):
             return RollbackStrategy.FILE_RESTORE
 
@@ -717,7 +715,7 @@ class CommandLifecycle:
             }
 
         return {
-            "summary": f"NPM operation simulated",
+            "summary": "NPM operation simulated",
             "safe": True,
             "output": f"Simulated: {command}",
         }

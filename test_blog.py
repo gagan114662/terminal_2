@@ -4,9 +4,6 @@ Simple test script for the blog application.
 Run this to verify basic functionality.
 """
 
-import json
-from time import sleep
-
 import requests
 
 BASE_URL = "http://localhost:5000"
@@ -33,7 +30,7 @@ def test_registration():
             "email": "test@example.com",
             "password": "testpass123",
         }
-        response = requests.post(f"{BASE_URL}/register", data=data)
+        requests.post(f"{BASE_URL}/register", data=data)
         print("✓ Registration endpoint accessible")
         return True
     except Exception as e:
@@ -45,7 +42,7 @@ def test_login():
     """Test user login"""
     try:
         data = {"username": "testuser", "password": "testpass123"}
-        response = requests.post(f"{BASE_URL}/login", data=data)
+        requests.post(f"{BASE_URL}/login", data=data)
         print("✓ Login endpoint accessible")
         return True
     except Exception as e:

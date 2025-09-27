@@ -3,13 +3,11 @@ Agentic RAG - Active Reasoning and Retrieval System
 Implements intelligent search and analysis for autonomous development
 """
 
-import hashlib
-import json
 import os
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 
 @dataclass
@@ -81,7 +79,7 @@ class CodeSearchEngine:
             if file_types and not any(file_path.endswith(ft) for ft in file_types):
                 continue
 
-            content = file_data["content"]
+            file_data["content"]
             lines = file_data["lines"]
 
             # Search for class definitions

@@ -5,9 +5,7 @@ Tests advanced validation rules, monitoring, and BMAD integration
 """
 
 import asyncio
-import os
 import sys
-from pathlib import Path
 
 # Add termnet to path
 sys.path.insert(0, "termnet")
@@ -16,11 +14,13 @@ sys.path.insert(0, "termnet")
 try:
     from termnet.validation_engine import ValidationEngine
     from termnet.validation_monitor import ValidationMonitor
-    from termnet.validation_rules_advanced import (APIEndpointValidation,
-                                                   DockerValidation,
-                                                   ReactApplicationValidation,
-                                                   SecurityValidation,
-                                                   TestCoverageValidation)
+    from termnet.validation_rules_advanced import (
+        APIEndpointValidation,
+        DockerValidation,
+        ReactApplicationValidation,
+        SecurityValidation,
+        TestCoverageValidation,
+    )
 
     print("✅ All advanced validation imports successful")
 except ImportError as e:
@@ -52,7 +52,7 @@ async def test_advanced_rules():
         ".", {"test_mode": True, "advanced_validation": True}
     )
 
-    print(f"\n📊 Advanced Validation Results:")
+    print("\n📊 Advanced Validation Results:")
     print(f"  Status: {results['overall_status']}")
     print(f"  Rules: {results['total_rules']}")
     print(f"  Passed: {results['passed']} ✅")
@@ -183,7 +183,7 @@ async def test_integration_workflow():
         fixes = validator.get_auto_fix_suggestions(failed_results)
         print(f"✅ Step 4: Auto-fix suggestions: {len(fixes)} commands")
 
-        print(f"\n🎉 INTEGRATION WORKFLOW SUCCESSFUL!")
+        print("\n🎉 INTEGRATION WORKFLOW SUCCESSFUL!")
         print(f"🔧 Total validation rules tested: {results['total_rules']}")
         print(f"📊 Overall status: {results['overall_status']}")
 
@@ -208,10 +208,14 @@ async def test_performance_advanced():
         engine = ValidationEngine("perf_test.db")
 
         # Add all rules
-        from termnet.validation_rules import (FlaskApplicationValidation,
-                                              PythonSyntaxValidation)
-        from termnet.validation_rules_advanced import (APIEndpointValidation,
-                                                       SecurityValidation)
+        from termnet.validation_rules import (
+            FlaskApplicationValidation,
+            PythonSyntaxValidation,
+        )
+        from termnet.validation_rules_advanced import (
+            APIEndpointValidation,
+            SecurityValidation,
+        )
 
         engine.add_rule(PythonSyntaxValidation())
         engine.add_rule(FlaskApplicationValidation())
@@ -223,11 +227,11 @@ async def test_performance_advanced():
 
         elapsed_time = time.time() - start_time
 
-        print(f"⚡ Performance Results:")
+        print("⚡ Performance Results:")
         print(f"  Total time: {elapsed_time:.2f}s")
         print(f"  Rules executed: {results['total_rules']}")
-        print(f"  Files validated: ~4000+ Python files")
-        print(f"  Time per rule: {elapsed_time/results['total_rules']:.2f}s")
+        print("  Files validated: ~4000+ Python files")
+        print(f"  Time per rule: {elapsed_time / results['total_rules']:.2f}s")
 
         if elapsed_time < 60:  # Under 1 minute for comprehensive validation
             print("✅ Performance: EXCELLENT (under 1 minute)")
@@ -266,7 +270,7 @@ async def run_all_advanced_tests():
     test_results["performance"] = await test_performance_advanced()
 
     # Final Summary
-    print(f"\n🎯 PHASE 2 TEST RESULTS SUMMARY")
+    print("\n🎯 PHASE 2 TEST RESULTS SUMMARY")
     print("=" * 70)
 
     passed_tests = sum(1 for result in test_results.values() if result)

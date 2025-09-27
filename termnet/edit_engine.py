@@ -5,16 +5,12 @@ Safely applies code patches with conflict resolution and guardrails.
 Follows Google AI best practices: idempotent operations, clear error handling.
 """
 
-import difflib
-import hashlib
 import os
 import re
 import shutil
 import tempfile
 from dataclasses import asdict, dataclass
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -387,7 +383,7 @@ class EditEngine:
 
                 for i, hunk in enumerate(hunks):
                     if not self._can_apply_hunk(current_content, hunk):
-                        conflicts.append(f"{file_path}:hunk{i+1}")
+                        conflicts.append(f"{file_path}:hunk{i + 1}")
 
             except Exception as e:
                 conflicts.append(f"{file_path}:read_error:{e}")

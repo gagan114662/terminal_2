@@ -3,7 +3,6 @@ BMAD Validation Agent - Automated quality assurance and code validation
 Performs comprehensive validation without user intervention
 """
 
-import json
 from typing import Any, Dict, List
 
 
@@ -145,7 +144,7 @@ Begin comprehensive validation now!"""
         else:
             report += "⚠️ **VALIDATION STATUS: ISSUES FOUND**\n\n"
 
-        report += f"**Summary Statistics:**\n"
+        report += "**Summary Statistics:**\n"
         report += f"- Total Rules: {results.get('total_rules', 0)}\n"
         report += f"- Passed: {results.get('passed', 0)} ✅\n"
         report += f"- Failed: {results.get('failed', 0)} ❌\n"

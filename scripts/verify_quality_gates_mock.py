@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Mock verify script that simulates success without running actual tests"""
+
 import json
 import os
 

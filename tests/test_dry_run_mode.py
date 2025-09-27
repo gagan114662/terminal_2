@@ -1,7 +1,6 @@
 """Test dry run mode configuration."""
 
 import json
-import os
 from pathlib import Path
 
 

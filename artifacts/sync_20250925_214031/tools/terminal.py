@@ -343,9 +343,11 @@ class TerminalSession:
 
         # Import and add standard validation rules
         try:
-            from termnet.validation_rules import (ApplicationStartupValidation,
-                                                  FlaskApplicationValidation,
-                                                  PythonSyntaxValidation)
+            from termnet.validation_rules import (
+                ApplicationStartupValidation,
+                FlaskApplicationValidation,
+                PythonSyntaxValidation,
+            )
 
             # Add rules if not already present
             if not hasattr(self.validation_engine, "_rules_added"):

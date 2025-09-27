@@ -5,12 +5,11 @@ Phase 3 of TermNet validation system: Intelligent command filtering and approval
 
 import json
 import re
-import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 
 from termnet.claims_engine import ClaimsEngine, ClaimSeverity
 

@@ -448,9 +448,11 @@ class TerminalSession:
 
         # Import and add standard validation rules
         try:
-            from termnet.validation_rules import (ApplicationStartupValidation,
-                                                  FlaskApplicationValidation,
-                                                  PythonSyntaxValidation)
+            from termnet.validation_rules import (
+                ApplicationStartupValidation,
+                FlaskApplicationValidation,
+                PythonSyntaxValidation,
+            )
 
             # Add rules if not already present
             if not hasattr(self.validation_engine, "_rules_added"):
@@ -516,7 +518,7 @@ class TerminalTool:
 
             # Fallback: Use async execute_command but handle event loop properly
             try:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # We're in an async context, so we can't use asyncio.run
                 # Instead, just return a basic result for now
                 return self._get_offline_result(cmd)

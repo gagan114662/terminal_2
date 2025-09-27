@@ -7,11 +7,9 @@ Integrates Syft for SBOM generation and Trivy/Grype for vulnerability scanning
 import datetime
 import hashlib
 import json
-import os
 import sqlite3
 import subprocess
 from dataclasses import asdict, dataclass
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 
@@ -257,9 +255,11 @@ class ContainerSecurityScanner:
                         vulnerability_id=vuln.get("id", ""),
                         package=match.get("artifact", {}).get("name", ""),
                         severity=vuln.get("severity", "Unknown"),
-                        fixed_version=vuln.get("fix", {}).get("versions", [""])[0]
-                        if vuln.get("fix")
-                        else None,
+                        fixed_version=(
+                            vuln.get("fix", {}).get("versions", [""])[0]
+                            if vuln.get("fix")
+                            else None
+                        ),
                         description=vuln.get("description", "")[:500],
                         cvss_score=None,  # Grype doesn't always provide CVSS
                     )
@@ -406,7 +406,7 @@ class ContainerSecurityScanner:
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"\n✅ Security scan complete!")
+        print("\n✅ Security scan complete!")
         print(f"📊 Report saved to: {report_file}")
         print(f"🎯 Compliance Status: {receipt.compliance_status}")
 
@@ -506,7 +506,7 @@ if __name__ == "__main__":
     # Scan the image
     report = scanner.scan_container("termnet-api:latest")
 
-    print(f"\n📈 Vulnerability Summary:")
+    print("\n📈 Vulnerability Summary:")
     print(f"   Critical: {report['vulnerabilities']['critical']}")
     print(f"   High: {report['vulnerabilities']['high']}")
     print(f"   Medium: {report['vulnerabilities']['medium']}")

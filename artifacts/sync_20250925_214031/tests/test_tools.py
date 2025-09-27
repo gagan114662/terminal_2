@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -114,9 +114,7 @@ class TestBrowserSearchTool:
             mock_context = AsyncMock()
 
             mock_context_manager = AsyncMock()
-            mock_context_manager.__aenter__.return_value.chromium.launch.return_value = (
-                mock_browser
-            )
+            mock_context_manager.__aenter__.return_value.chromium.launch.return_value = mock_browser
             mock_browser.new_context.return_value = mock_context
             mock_context.new_page.return_value = mock_page
 
@@ -155,9 +153,7 @@ class TestBrowserSearchTool:
             mock_context = AsyncMock()
 
             mock_context_manager = AsyncMock()
-            mock_context_manager.__aenter__.return_value.chromium.launch.return_value = (
-                mock_browser
-            )
+            mock_context_manager.__aenter__.return_value.chromium.launch.return_value = mock_browser
             mock_browser.new_context.return_value = mock_context
             mock_context.new_page.return_value = mock_page
 
@@ -250,7 +246,7 @@ class TestScratchpadTool:
         assert scratchpad_tool.notes["test_key"] == "initial content additional content"
 
     def test_append_to_new_note(self, scratchpad_tool):
-        result = scratchpad_tool.append("new_key", "new content")
+        scratchpad_tool.append("new_key", "new content")
 
         assert scratchpad_tool.notes["new_key"] == "new content"
 

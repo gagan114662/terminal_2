@@ -6,7 +6,7 @@ Generates verifiable terminal commands for all BMAD operations
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 
 class CommandVerifier:

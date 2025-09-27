@@ -5,7 +5,7 @@ Implements Reasoning + Acting pattern for autonomous development tasks
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List
 
 
 class ReActStep:

@@ -24,15 +24,17 @@ async def verify_all_fixes():
     print("\n1. Testing all imports...")
     try:
         from termnet.agent import TermNetAgent
-        from termnet.memory import ConversationMemory
         from termnet.safety import SafetyChecker
         from termnet.toolloader import ToolLoader
         from termnet.tools.browsersearch import BrowserSearchTool
         from termnet.tools.scratchpad import ScratchpadTool
         from termnet.tools.terminal import TerminalSession, TerminalTool
-        from termnet.trajectory_evaluator import (Step, StepPhase,
-                                                  TrajectoryEvaluator,
-                                                  TrajectoryStatus)
+        from termnet.trajectory_evaluator import (
+            Step,
+            StepPhase,
+            TrajectoryEvaluator,
+            TrajectoryStatus,
+        )
         from termnet.trend_analysis import TrendAnalyzer
 
         print("   ✅ All imports successful")
@@ -48,12 +50,12 @@ async def verify_all_fixes():
         agent = TermNetAgent(terminal)
 
         # Test async methods
-        start_result = await agent.start()
+        await agent.start()
         await agent.stop()
 
         # Test attributes
         assert hasattr(agent, "async_supported"), "Missing async_supported attribute"
-        assert agent.async_supported == True, "async_supported should be True"
+        assert agent.async_supported, "async_supported should be True"
         assert hasattr(
             agent, "_tool_execution_history"
         ), "Missing _tool_execution_history"
@@ -78,17 +80,17 @@ async def verify_all_fixes():
 
         # Test new methods
         safe_cmd = sc.is_safe_command("ls -la")
-        assert safe_cmd[0] == True, "Safe command should pass"
+        assert safe_cmd[0], "Safe command should pass"
 
         dangerous_cmd = sc.is_safe_command("rm -rf /")
-        assert dangerous_cmd[0] == False, "Dangerous command should fail"
+        assert not dangerous_cmd[0], "Dangerous command should fail"
         assert "dangerous" in dangerous_cmd[1].lower(), "Should mention 'dangerous'"
 
         path_check = sc.check_file_path("/etc/passwd")
-        assert path_check[0] == False, "System path should be restricted"
+        assert not path_check[0], "System path should be restricted"
 
         url_check = sc.is_safe_url("https://example.com")
-        assert url_check[0] == True, "Valid URL should pass"
+        assert url_check[0], "Valid URL should pass"
 
         # Test attributes
         assert hasattr(sc, "dangerous_patterns"), "Missing dangerous_patterns attribute"

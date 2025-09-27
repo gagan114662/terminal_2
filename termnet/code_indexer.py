@@ -11,9 +11,9 @@ import json
 import os
 import re
 from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 
 
 @dataclass
@@ -332,7 +332,7 @@ class CodeIndexer:
             r"^(?:from\s+(\S+)\s+)?import\s+([^#\n]+)", content, re.MULTILINE
         )
         for match in import_matches:
-            module = match.group(1) or "builtins"
+            match.group(1) or "builtins"
             imports = [imp.strip() for imp in match.group(2).split(",")]
             self.imports[file_path].extend(imports)
 

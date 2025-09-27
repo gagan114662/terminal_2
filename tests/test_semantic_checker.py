@@ -32,7 +32,7 @@ def test_good_answer_high_score(temp_semantic_checker):
     evidence = [
         "Source A shows calculation result of 42",
         "Source B confirms the same figure of 42",
-        "Mathematical analysis indicates 42 as correct"
+        "Mathematical analysis indicates 42 as correct",
     ]
 
     score = checker.score_answer(answer, evidence)
@@ -64,11 +64,10 @@ def test_contradictory_answer_low_consistency(temp_semantic_checker):
     """Answer contradicting evidence should have low consistency"""
     checker = temp_semantic_checker
 
-    answer = "The result is 99, but evidence shows 42. However evidence suggests otherwise."
-    evidence = [
-        "The result is clearly 42",
-        "All calculations point to 42"
-    ]
+    answer = (
+        "The result is 99, but evidence shows 42. However evidence suggests otherwise."
+    )
+    evidence = ["The result is clearly 42", "All calculations point to 42"]
 
     score = checker.score_answer(answer, evidence)
 
@@ -81,10 +80,7 @@ def test_well_cited_answer_good_style(temp_semantic_checker):
     checker = temp_semantic_checker
 
     answer = "According to Source A, the value is 100. The documentation (ref) confirms this result."
-    evidence = [
-        "Source A indicates value of 100",
-        "Documentation confirms 100"
-    ]
+    evidence = ["Source A indicates value of 100", "Documentation confirms 100"]
 
     score = checker.score_answer(answer, evidence)
 
@@ -97,7 +93,10 @@ def test_verbose_answer_style_penalty(temp_semantic_checker):
     checker = temp_semantic_checker
 
     # Create a 350+ word answer
-    verbose_answer = "The result is 50. " + "This is additional verbose content with many words. " * 60
+    verbose_answer = (
+        "The result is 50. "
+        + "This is additional verbose content with many words. " * 60
+    )
     evidence = ["The result is 50"]
 
     score = checker.score_answer(verbose_answer, evidence)

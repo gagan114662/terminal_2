@@ -6,10 +6,8 @@ Designed for autonomous code changes with comprehensive safety checks.
 """
 
 import json
-import os
 import subprocess
-import tempfile
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -402,9 +400,11 @@ class PRClient:
             changed_files = git_client.get_changed_files(base_branch)
             body = self.config["pr_template"].format(
                 summary=title,
-                changes=f"- Modified {len(changed_files)} files"
-                if changed_files
-                else "- No file changes detected",
+                changes=(
+                    f"- Modified {len(changed_files)} files"
+                    if changed_files
+                    else "- No file changes detected"
+                ),
                 testing="- Automated tests will run on PR",
             )
 

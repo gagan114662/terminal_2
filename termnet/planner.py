@@ -9,7 +9,7 @@ import hashlib
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -164,10 +164,10 @@ class WorkPlanner:
 {goal}
 
 ## Plan Summary
-- **Total Tasks**: {task_graph['total_tasks']}
-- **Estimated Complexity**: {task_graph['estimated_complexity']}
-- **Plan Hash**: `{task_graph['plan_hash']}`
-- **Created**: {task_graph['created_at']}
+- **Total Tasks**: {task_graph["total_tasks"]}
+- **Estimated Complexity**: {task_graph["estimated_complexity"]}
+- **Plan Hash**: `{task_graph["plan_hash"]}`
+- **Created**: {task_graph["created_at"]}
 
 ## Task Graph
 
@@ -184,8 +184,8 @@ class WorkPlanner:
             md_content += f"""### Task: {task_id}
 **Description**: {task.description}
 **Risk Level**: {task.risk}
-**Dependencies**: {', '.join(task.dependencies) if task.dependencies else 'None'}
-**Estimated Files**: {', '.join(task.estimated_files) if task.estimated_files else 'TBD'}
+**Dependencies**: {", ".join(task.dependencies) if task.dependencies else "None"}
+**Estimated Files**: {", ".join(task.estimated_files) if task.estimated_files else "TBD"}
 
 **Done Criteria**:
 """

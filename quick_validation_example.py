@@ -5,9 +5,13 @@ Quick example showing how to instantiate and use the ValidationEngine
 
 import asyncio
 
-from termnet.validation_engine import (ValidationEngine, ValidationResult,
-                                       ValidationRule, ValidationSeverity,
-                                       ValidationStatus)
+from termnet.validation_engine import (
+    ValidationEngine,
+    ValidationResult,
+    ValidationRule,
+    ValidationSeverity,
+    ValidationStatus,
+)
 
 
 # Custom validation rule example
@@ -70,7 +74,7 @@ async def main():
 
     # Get rule statistics
     stats = engine.get_rule_statistics()
-    print(f"\n📊 Rule Statistics:")
+    print("\n📊 Rule Statistics:")
     print(f"  Total rules: {stats['total_rules']}")
     print(f"  Rules by severity: {stats['rules_by_severity']}")
 

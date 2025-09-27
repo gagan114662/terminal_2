@@ -6,7 +6,6 @@ Limited test for TermNet Validation System - tests on specific files only
 import asyncio
 import os
 import sys
-from pathlib import Path
 
 sys.path.insert(0, "termnet")
 
@@ -42,8 +41,7 @@ if __name__ == "__main__":
         async def validate(self, project_path: str, context):
             import ast
 
-            from termnet.validation_engine import (ValidationResult,
-                                                   ValidationStatus)
+            from termnet.validation_engine import ValidationResult
 
             try:
                 with open(test_file, "r") as f:
@@ -73,7 +71,7 @@ if __name__ == "__main__":
         ".", {"test_mode": True, "single_file": test_file}
     )
 
-    print(f"\n📈 Results:")
+    print("\n📈 Results:")
     print(f"  Status: {results['overall_status']}")
     print(f"  Passed: {results['passed']}/{results['total_rules']}")
 
@@ -103,8 +101,7 @@ def broken(:  # Syntax error here
         async def validate(self, project_path: str, context):
             import ast
 
-            from termnet.validation_engine import (ValidationResult,
-                                                   ValidationStatus)
+            from termnet.validation_engine import ValidationResult
 
             try:
                 with open(error_file, "r") as f:
@@ -150,7 +147,7 @@ if __name__ == "__main__":
             # Test 2: Syntax error
             await test_syntax_error()
 
-            print(f"\n✅ Validation tests completed successfully!")
+            print("\n✅ Validation tests completed successfully!")
 
         except Exception as e:
             print(f"❌ Test error: {e}")
