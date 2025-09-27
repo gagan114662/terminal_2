@@ -14,7 +14,7 @@ from code_analyzer import CodeAnalyzer
 from orchestrator import BMADOrchestrator
 from rag_processor import RAGProcessor
 from react_framework import ReActFramework
-from task_analyzer import TaskAnalyzer, TaskComplexity
+from task_analyzer import TaskAnalyzer
 
 
 class EnhancedBMADOrchestrator(BMADOrchestrator):
@@ -58,7 +58,7 @@ class EnhancedBMADOrchestrator(BMADOrchestrator):
             },
         }
 
-        print(f"📋 Enhanced Task Analysis Complete:")
+        print("📋 Enhanced Task Analysis Complete:")
         print(f"   Complexity: {complexity.value}")
         print(f"   Agents needed: {len(recommended_workflow)}")
         print(f"   Workflow: {' → '.join(recommended_workflow)}")

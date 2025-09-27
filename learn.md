@@ -93,7 +93,7 @@ a small team needs to scale.
 • Remember your customers to deliver a truly personal experience: Seamlessly integrate short-term conversational context with long-term knowledge, enabling you to have your agent recall past interactions and build a true customer relationship.
 • Launch with confidence: Leverage built-in evaluation and observability to rigorously test and debug your agent, ensuring you ship a reliable, production-grade product.
 • Focus on your product, not infrastructure: Package your agent into a standard container for a faster, more reliable path to production using standard DevOps practices.
-        
+
      Section 1: Core concepts of AI agents Section 2 Section 3
  Google Agentspace for application-first development
 The second primary pathway for building is through Google Agentspace. Unlike the code-first ADK, you can use Google Agentspace to orchestrate your entire AI workforce and empower non-technical team members to build custom agents using a no-code designer.
@@ -156,7 +156,7 @@ Try these prompts in Gemini Cloud Assist:
  What are the public-facing firewall rules applied
 to instances with the network tag external-web-server?
  Show me all IAM roles granted to the service account data-pipeline@my-project.iam.gserviceaccount.com
-        
+
      Section 1: Core concepts of AI agents Section 2
 Section 3
  Gemini in Colab Enterprise
@@ -343,7 +343,7 @@ to search the internal CRM to see if the lead is an existing customer. It would 
 a nurturing sequence.
 Mastering orchestration is the key to moving beyond simple, single-shot agents. When you get it right, you create sophisticated, autonomous systems that can tackle problems that, previously, were not technically feasible. It unlocks
 a new class of applications and user experiences.
- 
+
      Section 1: Core concepts of AI agents Section 2 Section 3
  Runtime: Deploying agents at scale
 Deploying a functional agent prototype into a production environment requires a robust runtime infrastructure.
@@ -570,7 +570,7 @@ n
 t
 t
 s
- 
+
      Section 1 Section 2: How to build AI agents Section 3
  The previous section defined the fundamental components of a modern agentic system: a core reasoning model, a set of tools to enable action,
 data architecture options to persist short-and long-term agent memory, a grounding mechanism
@@ -1325,7 +1325,7 @@ Inspect the agent’s trajectory (its “chain of thought”) using logging and 
 Apply AgentOps security principles, which include infrastructure security, data governance,
 and compliance controls.
 Use the Agent Starter Pack for pre-configured templates for CI/CD, evaluation, and infrastructure.
-       
+
      Section 1 Section 2 Section 3: Ensuring AI agents are reliable and responsible
   Ready to turn your AI vision into reality? We’re here to help.
 Learn how to build more generative AI applications with on-demand Startup School sessions.
@@ -1355,7 +1355,7 @@ Plus, you can scale with confidence, without compromising
 on safety or security.
 As this guide has shown, Google Cloud supports this innovation, from its purpose-built AI hardware and unified data platform,
 to the models, services, and tools needed to transition your concept into a sophisticated AI system. The platform is the foundation; your unique vision and the principles outlined in this guide are the blueprint. Together, they form the basis for building the next generation of intelligent systems that will drive your startup forward.
- 
+
 Resources
 • AdkApp: Develop and deploy agents on Vertex AI Agent Engine.
 • Agent Development Kit (ADK): ADK is a flexible and modular framework for developing and deploying AI agents.
@@ -1385,7 +1385,7 @@ Put your containers on autopilot and securely run your enterprise workloads at s
 • Imagen: Imagen on Vertex AI brings Google’s state-of- the-art image generative AI capabilities to application developers.
 • MCP Toolbox for Databases: This is an open source MCP server that helps you build generative AI tools so that your agents can access data in your database.
                         60
-   
+
  • Model Context Protocol (MCP): MCP is an open protocol that standardizes how applications provide context to LLMs.
 • Model evaluation in Vertex AI: The predictive AI evaluation service lets you evaluate model performance across specific use cases.
 • Model Garden on Vertex AI: Jump-start your ML project with a single place to discover, customize, and deploy a wide variety of models from Google and Google partners.
@@ -1409,4 +1409,3 @@ refine, and seamlessly deploy models to your applications.
 
 Questions? Ask our Startups team.
 Contact us
- 

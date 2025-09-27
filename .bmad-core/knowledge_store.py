@@ -7,7 +7,7 @@ import hashlib
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 class CodebaseInsight:
@@ -152,7 +152,7 @@ class KnowledgeStore:
                             if "def " in content and "async def" in content:
                                 self.add_insight(
                                     "async_pattern",
-                                    f"File uses both sync and async functions",
+                                    "File uses both sync and async functions",
                                     relative_path,
                                     ["python", "async", "pattern"],
                                 )
@@ -173,7 +173,7 @@ class KnowledgeStore:
                                         ["python", "dependencies"],
                                     )
 
-                    except Exception as e:
+                    except Exception:
                         continue
 
                 analysis["files_analyzed"] += 1

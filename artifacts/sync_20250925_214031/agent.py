@@ -6,8 +6,6 @@ import time
 from datetime import datetime
 from typing import Dict, List, Tuple
 
-import aiohttp
-
 from termnet.bmad_integration import BMADIntegration
 from termnet.claude_code_client import ClaudeCodeClient
 from termnet.config import CONFIG
@@ -18,8 +16,12 @@ try:
     from termnet.openrouter_client import OpenRouterClient
 except ImportError:
     OpenRouterClient = None
-from termnet.trajectory_evaluator import (Step, StepPhase, TrajectoryEvaluator,
-                                          TrajectoryStatus)
+from termnet.trajectory_evaluator import (
+    Step,
+    StepPhase,
+    TrajectoryEvaluator,
+    TrajectoryStatus,
+)
 
 
 class TermNetAgent:
@@ -154,7 +156,9 @@ Examples for macOS:
                 method = getattr(tool_instance, "execute_command", None)
                 if method and "command" not in args and len(args) == 0:
                     # If no command provided, ask for it
-                    obs = "❌ No command specified. Please provide a command to execute."
+                    obs = (
+                        "❌ No command specified. Please provide a command to execute."
+                    )
                 elif method:
                     # Ensure command argument is provided
                     command = args.get("command", "")
@@ -300,9 +304,9 @@ Examples for macOS:
                     goal, self._execute_claude_chat
                 )
                 if success:
-                    print(f"\n✅ Automated workflow completed successfully!")
+                    print("\n✅ Automated workflow completed successfully!")
                 else:
-                    print(f"\n❌ Automated workflow failed")
+                    print("\n❌ Automated workflow failed")
                 return
             else:
                 # Single agent execution
@@ -327,7 +331,6 @@ Examples for macOS:
 
         for step in range(CONFIG["MAX_AI_STEPS"]):
             collected_text = ""
-            step_executed = False  # Track execution per step
 
             # Record THINK step at start of each reasoning loop
             if self.current_trajectory:
@@ -336,7 +339,7 @@ Examples for macOS:
                     phase=StepPhase.THINK,
                     timestamp=datetime.now().isoformat(),
                     latency_ms=50,  # Minimal thinking overhead
-                    rationale_summary=f"Starting reasoning step {step+1}",
+                    rationale_summary=f"Starting reasoning step {step + 1}",
                 )
                 self.step_counter += 1
                 self.trajectory_evaluator.record_step(
@@ -368,9 +371,11 @@ Examples for macOS:
                                         "type": "function",
                                         "function": {
                                             "name": name,
-                                            "arguments": json.dumps(args)
-                                            if isinstance(args, dict)
-                                            else str(args),
+                                            "arguments": (
+                                                json.dumps(args)
+                                                if isinstance(args, dict)
+                                                else str(args)
+                                            ),
                                         },
                                     }
                                 ],
@@ -573,7 +578,7 @@ Examples for macOS:
                     }
                 )
 
-            except Exception as e:
+            except Exception:
                 continue
 
         return tool_calls

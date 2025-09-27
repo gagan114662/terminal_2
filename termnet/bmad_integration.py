@@ -5,7 +5,7 @@ Integrates BMAD-METHOD autonomous development system with TermNet
 
 import os
 import sys
-from typing import Optional, Tuple
+from typing import Tuple
 
 # Add the .bmad-core directory to Python path
 sys.path.insert(0, ".bmad-core")

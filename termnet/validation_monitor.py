@@ -4,28 +4,29 @@ Monitors project changes and triggers validation automatically
 """
 
 import asyncio
-import time
 import json
-from pathlib import Path
-from typing import Dict, Any, List, Optional
+import time
 from datetime import datetime
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from pathlib import Path
+from typing import Any, Dict, List
 
-from termnet.validation_engine import ValidationEngine, ValidationResult
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
+from termnet.validation_engine import ValidationEngine
 from termnet.validation_rules import (
+    ApplicationStartupValidation,
+    DatabaseValidation,
+    FlaskApplicationValidation,
     PythonSyntaxValidation,
     RequirementsValidation,
-    ApplicationStartupValidation,
-    FlaskApplicationValidation,
-    DatabaseValidation
 )
 from termnet.validation_rules_advanced import (
-    ReactApplicationValidation,
-    DockerValidation,
     APIEndpointValidation,
+    DockerValidation,
+    ReactApplicationValidation,
     SecurityValidation,
-    TestCoverageValidation
+    TestCoverageValidation,
 )
 
 
@@ -41,12 +42,26 @@ class ValidationFileHandler(FileSystemEventHandler):
         path = Path(file_path)
 
         # Skip temporary files and directories
-        if any(part.startswith('.') for part in path.parts):
+        if any(part.startswith(".") for part in path.parts):
             return False
 
         # Only validate important file types
-        important_extensions = {'.py', '.js', '.jsx', '.ts', '.tsx', '.json', '.yml', '.yaml',
-                              '.dockerfile', '.md', '.txt', '.cfg', '.ini', '.toml'}
+        important_extensions = {
+            ".py",
+            ".js",
+            ".jsx",
+            ".ts",
+            ".tsx",
+            ".json",
+            ".yml",
+            ".yaml",
+            ".dockerfile",
+            ".md",
+            ".txt",
+            ".cfg",
+            ".ini",
+            ".toml",
+        }
 
         return path.suffix.lower() in important_extensions
 
@@ -79,7 +94,7 @@ class ValidationMonitor:
             "validations_triggered": 0,
             "files_monitored": 0,
             "last_validation": None,
-            "monitoring_since": None
+            "monitoring_since": None,
         }
 
         self._setup_validation_rules()
@@ -100,7 +115,9 @@ class ValidationMonitor:
         self.validation_engine.add_rule(SecurityValidation())
         self.validation_engine.add_rule(TestCoverageValidation())
 
-        print(f"🔍 Monitoring with {len(self.validation_engine.rules)} validation rules")
+        print(
+            f"🔍 Monitoring with {len(self.validation_engine.rules)} validation rules"
+        )
 
     def start_monitoring(self):
         """Start file system monitoring"""
@@ -138,11 +155,13 @@ class ValidationMonitor:
             print(f"🔄 File changed: {Path(changed_file).name} - triggering validation")
 
             # Add to validation queue
-            await self.validation_queue.put({
-                "file": changed_file,
-                "timestamp": datetime.now().isoformat(),
-                "type": "file_change"
-            })
+            await self.validation_queue.put(
+                {
+                    "file": changed_file,
+                    "timestamp": datetime.now().isoformat(),
+                    "type": "file_change",
+                }
+            )
 
             # Run validation
             results = await self.validation_engine.validate_project(
@@ -150,8 +169,8 @@ class ValidationMonitor:
                 {
                     "trigger": "file_change",
                     "changed_file": changed_file,
-                    "monitoring_mode": True
-                }
+                    "monitoring_mode": True,
+                },
             )
 
             self.stats["validations_triggered"] += 1
@@ -172,12 +191,18 @@ class ValidationMonitor:
 
         status_emoji = {"PASSED": "✅", "FAILED": "❌", "ERROR": "🚫"}.get(status, "❓")
 
-        print(f"{status_emoji} Validation: {status} | {passed}✅ {failed}❌ {errors}🚫 | Trigger: {Path(trigger_file).name}")
+        print(
+            f"{status_emoji} Validation: {status} | {passed}✅ {failed}❌ {errors}🚫 | Trigger: {Path(trigger_file).name}"
+        )
 
         # Show critical issues only
         if failed > 0 or errors > 0:
-            critical_issues = [r for r in results.get("results", [])
-                             if r.status.name in ["FAILED", "ERROR"] and r.severity.name == "CRITICAL"]
+            critical_issues = [
+                r
+                for r in results.get("results", [])
+                if r.status.name in ["FAILED", "ERROR"]
+                and r.severity.name == "CRITICAL"
+            ]
             for issue in critical_issues[:2]:  # Show max 2 critical issues
                 print(f"  ⚠️ {issue.rule_name}: {issue.message}")
 
@@ -190,8 +215,8 @@ class ValidationMonitor:
             {
                 "trigger": "manual",
                 "monitoring_mode": True,
-                "timestamp": datetime.now().isoformat()
-            }
+                "timestamp": datetime.now().isoformat(),
+            },
         )
 
         self.stats["validations_triggered"] += 1
@@ -199,7 +224,9 @@ class ValidationMonitor:
 
         return results
 
-    def score_agent_completion(self, request_id: str, final_answer: str, evidence_snippets: List[str]):
+    def score_agent_completion(
+        self, request_id: str, final_answer: str, evidence_snippets: List[str]
+    ):
         """Hook to score agent run completion with semantic evaluation"""
         try:
             from termnet.claims_engine import SemanticChecker
@@ -208,8 +235,10 @@ class ValidationMonitor:
             score = checker.score_answer(final_answer, evidence_snippets)
             checker.save_semantic_score(request_id, score)
 
-            print(f"📊 Semantic Score [Request {request_id}]: {score['final']}/100 "
-                  f"(G:{score['grounding']:.2f} C:{score['consistency']:.2f} S:{score['style']:.2f})")
+            print(
+                f"📊 Semantic Score [Request {request_id}]: {score['final']}/100 "
+                f"(G:{score['grounding']:.2f} C:{score['consistency']:.2f} S:{score['style']:.2f})"
+            )
 
             return score
 
@@ -221,15 +250,20 @@ class ValidationMonitor:
         """Get current monitoring statistics"""
         monitored_files = 0
         if self.project_path.exists():
-            monitored_files = len([f for f in self.project_path.rglob("*")
-                                 if f.is_file() and not any(part.startswith('.') for part in f.parts)])
+            monitored_files = len(
+                [
+                    f
+                    for f in self.project_path.rglob("*")
+                    if f.is_file() and not any(part.startswith(".") for part in f.parts)
+                ]
+            )
 
         return {
             **self.stats,
             "is_monitoring": self.is_monitoring,
             "monitored_files": monitored_files,
             "project_path": str(self.project_path),
-            "validation_rules": len(self.validation_engine.rules)
+            "validation_rules": len(self.validation_engine.rules),
         }
 
     def get_recent_validations(self, limit: int = 10) -> List[Dict]:
@@ -244,15 +278,13 @@ class ValidationMonitor:
             "validation_engine": self.validation_engine is not None,
             "rules_loaded": len(self.validation_engine.rules),
             "project_accessible": self.project_path.exists(),
-            "queue_size": self.validation_queue.qsize()
+            "queue_size": self.validation_queue.qsize(),
         }
 
         # Test validation engine
         try:
             test_result = await self.validation_engine.validate_command_output(
-                "echo 'health check'",
-                ["health check"],
-                str(self.project_path)
+                "echo 'health check'", ["health check"], str(self.project_path)
             )
             health["engine_functional"] = test_result.status.name == "PASSED"
         except Exception as e:
@@ -261,19 +293,25 @@ class ValidationMonitor:
 
         return health
 
-    def export_monitoring_report(self, filename: str = "validation_monitoring_report.json"):
+    def export_monitoring_report(
+        self, filename: str = "validation_monitoring_report.json"
+    ):
         """Export monitoring report"""
         report = {
             "report_generated": datetime.now().isoformat(),
             "monitoring_stats": self.get_monitoring_stats(),
             "recent_validations": self.get_recent_validations(20),
             "validation_rules": [
-                {"name": rule.name, "description": rule.description, "severity": rule.severity.value}
+                {
+                    "name": rule.name,
+                    "description": rule.description,
+                    "severity": rule.severity.value,
+                }
                 for rule in self.validation_engine.rules
-            ]
+            ],
         }
 
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         print(f"📊 Monitoring report exported to: {filename}")
@@ -306,5 +344,6 @@ async def start_monitoring_daemon(project_path: str = "."):
 
 if __name__ == "__main__":
     import sys
+
     project_path = sys.argv[1] if len(sys.argv) > 1 else "."
     asyncio.run(start_monitoring_daemon(project_path))

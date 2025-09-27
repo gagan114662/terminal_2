@@ -1,5 +1,8 @@
+import json
+from pathlib import Path
+
 # Default config - hardcoded to avoid file operations issues
-CONFIG = {
+DEFAULT_CONFIG = {
     "USE_CLAUDE_CODE": False,
     "USE_CLAUDE": False,
     "USE_OPENROUTER": False,
@@ -21,3 +24,24 @@ CONFIG = {
     "STREAM_CHUNK_DELAY": 0,
     "CONVERSATION_MEMORY_SIZE": 10,
 }
+
+
+def load_config():
+    """Load configuration from config.json, falling back to defaults"""
+    config = DEFAULT_CONFIG.copy()
+
+    # Try to find config.json in the termnet directory
+    config_path = Path(__file__).parent / "config.json"
+
+    try:
+        if config_path.exists():
+            with open(config_path, "r") as f:
+                file_config = json.load(f)
+                config.update(file_config)
+    except Exception as e:
+        print(f"Warning: Could not load config.json: {e}")
+
+    return config
+
+
+CONFIG = load_config()

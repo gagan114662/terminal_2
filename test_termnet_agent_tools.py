@@ -5,17 +5,13 @@ Tests various tool invocations and agent behaviors
 """
 
 import asyncio
-import json
-import os
 import sys
-from typing import Dict, List
 
 # Add termnet to Python path
 sys.path.insert(0, ".")
 
 from termnet.agent import TermNetAgent
 from termnet.config import CONFIG
-from termnet.toolloader import ToolLoader
 from termnet.tools.terminal import TerminalSession
 
 
@@ -38,7 +34,7 @@ class TermNetAgentTester:
         self.agent = TermNetAgent(self.terminal)
 
         # Display configuration
-        print(f"📋 Configuration:")
+        print("📋 Configuration:")
         print(f"   Model: {CONFIG.get('MODEL_NAME', 'Not specified')}")
         print(f"   Claude Code Enabled: {CONFIG.get('USE_CLAUDE_CODE', False)}")
         print(f"   Max Steps: {CONFIG.get('MAX_AI_STEPS', 5)}")
@@ -46,7 +42,7 @@ class TermNetAgentTester:
 
         # Check available tools
         tools = self.agent.tool_loader.get_tool_definitions()
-        print(f"\n🛠️  Available Tools:")
+        print("\n🛠️  Available Tools:")
         for tool in tools:
             tool_name = tool.get("function", {}).get("name", "Unknown")
             tool_desc = tool.get("function", {}).get("description", "No description")[

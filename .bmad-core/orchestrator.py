@@ -6,7 +6,7 @@ Part of BMAD-METHOD autonomous development system
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from agent_loader import AgentLoader
 
@@ -98,7 +98,7 @@ class BMADOrchestrator:
         # Execute each agent in sequence
         for i, agent_name in enumerate(self.standard_workflow):
             print(
-                f"\n📍 Step {i+1}/{len(self.standard_workflow)}: Activating {agent_name.upper()} Agent"
+                f"\n📍 Step {i + 1}/{len(self.standard_workflow)}: Activating {agent_name.upper()} Agent"
             )
             print("-" * 40)
 
@@ -131,7 +131,7 @@ class BMADOrchestrator:
                 print(f"❌ Error getting response from {agent_name} agent: {e}")
                 return False
 
-        print(f"\n🎉 AUTOMATED WORKFLOW COMPLETED!")
+        print("\n🎉 AUTOMATED WORKFLOW COMPLETED!")
         print("=" * 60)
         print("📊 Final Status:")
         status = self.get_workflow_status()

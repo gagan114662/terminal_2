@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from agentic_rag import AgenticRAG, CodeSearchResult
 from react_framework import ReActFramework
@@ -202,19 +202,19 @@ class RAGProcessor:
         """Synthesize findings with reasoning chain"""
         synthesis = f"## Analysis of: {query}\n\n"
 
-        synthesis += f"**Reasoning Process:**\n"
+        synthesis += "**Reasoning Process:**\n"
         synthesis += (
             f"- Initial search found {len(rag_result['search_results'])} results\n"
         )
         synthesis += f"- Confidence level: {rag_result['confidence_score']:.2f}\n"
         synthesis += f"- Refined analysis type: {refined_results['type']}\n\n"
 
-        synthesis += f"**Key Findings:**\n"
+        synthesis += "**Key Findings:**\n"
         if rag_result["search_results"]:
             synthesis += f"- Existing implementations found in {len(set(r.file_path for r in rag_result['search_results']))} files\n"
             synthesis += f"- Primary context types: {', '.join(set(r.context_type for r in rag_result['search_results']))}\n"
 
-        synthesis += f"\n**Recommendation:**\n"
+        synthesis += "\n**Recommendation:**\n"
         if rag_result["confidence_score"] > 0.7:
             synthesis += "High confidence - use existing patterns as reference for implementation.\n"
         elif rag_result["confidence_score"] > 0.3:

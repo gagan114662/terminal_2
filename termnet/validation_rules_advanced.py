@@ -4,14 +4,16 @@ Project-specific and technology-specific validation rules
 """
 
 import json
-import os
 import re
-import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
-from termnet.validation_engine import (ValidationResult, ValidationRule,
-                                       ValidationSeverity, ValidationStatus)
+from termnet.validation_engine import (
+    ValidationResult,
+    ValidationRule,
+    ValidationSeverity,
+    ValidationStatus,
+)
 
 
 class ReactApplicationValidation(ValidationRule):
@@ -152,7 +154,7 @@ class DockerValidation(ValidationRule):
 
             # Test docker build (dry run)
             if dockerfile.exists():
-                cmd = f"docker build --dry-run -f Dockerfile ."
+                cmd = "docker build --dry-run -f Dockerfile ."
                 output, exit_code, success = await terminal.execute_command(cmd)
 
                 if exit_code != 0 and "no such file or directory" not in output.lower():
@@ -221,7 +223,7 @@ class APIEndpointValidation(ValidationRule):
         try:
             from termnet.tools.terminal import TerminalSession
 
-            terminal = TerminalSession()
+            TerminalSession()
 
             # Find API endpoints in code
             endpoints = []

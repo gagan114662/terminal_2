@@ -142,7 +142,7 @@ class ToolLoader:
         """Get tool definitions, matching test contract exactly."""
         try:
             raw = json.load(open(registry_path, "r", encoding="utf-8"))
-        except Exception as e:
+        except Exception:
             # Silent fallback: generate from loaded_tools (for tests)
             out = []
             for name, tool_data in self.loaded_tools.items():

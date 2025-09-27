@@ -4,9 +4,7 @@ Uses your existing Claude Code subscription via CLI
 """
 
 import asyncio
-import json
 import os
-import subprocess
 from typing import AsyncGenerator, Tuple
 
 from termnet.config import CONFIG

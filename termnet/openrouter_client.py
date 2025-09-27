@@ -3,7 +3,6 @@ OpenRouter API client for TermNet integration
 Replaces Ollama with OpenRouter for cloud-based LLM access
 """
 
-import asyncio
 import json
 import time
 from typing import AsyncGenerator, Dict, List, Tuple
@@ -85,7 +84,9 @@ class OpenRouterClient:
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        print(f"❌ OpenRouter API error {response.status}: {error_text}")
+                        print(
+                            f"❌ OpenRouter API error {response.status}: {error_text}"
+                        )
                         yield ("CONTENT", f"API Error: {error_text}")
                         return
 

@@ -1,4 +1,5 @@
 """JSON serialization helper for custom objects"""
+
 import json
 from datetime import datetime
 from typing import Any

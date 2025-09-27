@@ -125,7 +125,7 @@ class BrowserSearchTool:
             return {"url": url, "elements": [], "summary": summary}
 
         results_text = "\n".join(
-            f"{i+1}. [{e['type']}] {e.get('text') or '(no text)'} "
+            f"{i + 1}. [{e['type']}] {e.get('text') or '(no text)'} "
             f"-> {e.get('url') or e.get('action') or ''} "
             f"(score: {e['score']:.2f})"
             for i, e in enumerate(elements)
@@ -220,7 +220,7 @@ class BrowserSearchTool:
         summary = (
             f"🔎 Mock search results from {url}:\n\n"
             + "\n".join(
-                f"{i+1}. [{e['type']}] {e['text']} -> {e['url']} (score: {e['score']:.2f})"
+                f"{i + 1}. [{e['type']}] {e['text']} -> {e['url']} (score: {e['score']:.2f})"
                 for i, e in enumerate(elements)
             )
             + "\n\n👉 Mock results for testing"
@@ -342,7 +342,7 @@ async def main():
     results = await tool.search(url)
 
     # Agent sees the summary via return value
-    summary = results["summary"]
+    results["summary"]
 
     # Example: fetch article content
     if results["elements"]:
@@ -350,7 +350,7 @@ async def main():
             (e["url"] for e in results["elements"] if e["type"] == "link"), None
         )
         if first_article:
-            content = await tool.click_and_collect(first_article)
+            await tool.click_and_collect(first_article)
             # You can decide whether to print content here, or let agent consume it
 
 

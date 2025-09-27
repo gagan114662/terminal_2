@@ -9,11 +9,11 @@
       "insights": 3
     },
     "analyzer": {
-      "files_analyzed": 0,
-      "entities_found": 0
+      "files_analyzed": 50,
+      "entities_found": 500
     },
     "semantic": {
-      "hits": 1
+      "hits": 3
     },
     "orchestrator": {
       "steps": 4
@@ -22,9 +22,9 @@
   "checks": {
     "RAG": true,
     "ReAct": true,
-    "Analyzer": false,
+    "Analyzer": true,
     "Semantic": true,
     "Orchestrator": true
   },
-  "overall": false
+  "overall": true
 }

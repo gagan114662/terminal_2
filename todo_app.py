@@ -4,11 +4,10 @@ Complete TODO List Application with SQLite Database
 """
 
 import argparse
-import os
 import sqlite3
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from tabulate import tabulate
 
@@ -401,10 +400,10 @@ class TodoCLI:
         cat_add.add_argument("name", help="Category name")
         cat_add.add_argument("-c", "--color", help="Category color")
 
-        cat_list = category_subparsers.add_parser("list", help="List categories")
+        category_subparsers.add_parser("list", help="List categories")
 
         # Stats command
-        stats_parser = subparsers.add_parser("stats", help="Show statistics")
+        subparsers.add_parser("stats", help="Show statistics")
 
         args = parser.parse_args()
 

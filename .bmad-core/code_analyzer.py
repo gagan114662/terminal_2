@@ -4,12 +4,10 @@ Semantic analysis, dependency mapping, and pattern recognition
 """
 
 import ast
-import json
 import os
-import re
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

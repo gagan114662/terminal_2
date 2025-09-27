@@ -6,7 +6,7 @@ Manages shared context, memory, and data flow between BMAD agents
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 
 class AgentContext:

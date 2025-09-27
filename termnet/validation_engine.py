@@ -3,17 +3,13 @@ ValidationEngine - Core validation infrastructure for TermNet
 Automatically verifies build accuracy by running terminal commands
 """
 
-import asyncio
-import json
 import sqlite3
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-from termnet.config import CONFIG
+from typing import Any, Dict, List, Optional
 
 
 class ValidationStatus(Enum):
@@ -196,7 +192,7 @@ class ValidationEngine:
         # Store results in database
         await self._store_results(summary, context)
 
-        print(f"\n📊 Validation Summary:")
+        print("\n📊 Validation Summary:")
         print(f"  Total Rules: {summary['total_rules']}")
         print(f"  Passed: {summary['passed']} ✅")
         print(f"  Failed: {summary['failed']} ❌")

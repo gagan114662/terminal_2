@@ -92,7 +92,7 @@ def test_redaction_in_trajectory(tmp_path):
     )
 
     # Log the step
-    redacted_json = log_step(step, traj_file)
+    log_step(step, traj_file)
 
     # Read the file content
     content = traj_file.read_text()

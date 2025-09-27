@@ -3,7 +3,6 @@ import json
 import os
 import signal
 import sys
-import time
 
 ART_DIR = os.environ.get("VERIFY_ART_DIR", "artifacts")
 THRESH = {

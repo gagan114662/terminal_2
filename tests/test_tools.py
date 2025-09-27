@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -240,7 +240,7 @@ class TestScratchpadTool:
         )
 
     def test_append_to_new_note(self, scratchpad_tool):
-        result = scratchpad_tool.append("new_key", "new content")
+        scratchpad_tool.append("new_key", "new content")
 
         assert scratchpad_tool.notes["new_key"] == "new content"
 

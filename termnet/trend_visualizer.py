@@ -3,11 +3,9 @@ TermNet Trend Visualization System
 Creates charts and visualizations for trend analysis
 """
 
-import json
-import os
 import sqlite3
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 
 class TrendVisualizer:
@@ -87,7 +85,7 @@ class TrendVisualizer:
         if len(data) > 0:
             first_time = datetime.fromisoformat(data[0][0])
             last_time = datetime.fromisoformat(data[-1][0])
-            time_label = f"{'':>10}{first_time.strftime('%H:%M')}{'':>{width-20}}{last_time.strftime('%H:%M')}"
+            time_label = f"{'':>10}{first_time.strftime('%H:%M')}{'':>{width - 20}}{last_time.strftime('%H:%M')}"
             chart_lines.append(time_label)
 
         return "\n".join(chart_lines)
@@ -320,9 +318,9 @@ class TrendVisualizer:
         values = [v for _, v in data]
         stats_lines = [
             "",
-            f"Statistics:",
+            "Statistics:",
             f"  Count: {len(values)}",
-            f"  Mean:  {sum(values)/len(values):.2f}",
+            f"  Mean:  {sum(values) / len(values):.2f}",
             f"  Min:   {min(values):.2f}",
             f"  Max:   {max(values):.2f}",
         ]
