@@ -15,10 +15,8 @@ async def main():
         user_input = await loop.run_in_executor(None, input, "You: ")
         if user_input.lower() in ("exit", "quit"):
             break
-        # start = time.time()
         response = await agent.chat(user_input)
         print(f"TermNet: {response}")
-        # print(f"\nTime Elapsed: {time.time()-start:.1f}s\n")
 
     await term.stop()
     print("Closed.")
