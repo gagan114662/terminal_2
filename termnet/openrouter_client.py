@@ -84,9 +84,7 @@ class OpenRouterClient:
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        print(
-                            f"❌ OpenRouter API error {response.status}: {error_text}"
-                        )
+                        print(f"❌ OpenRouter API error {response.status}: {error_text}")
                         yield ("CONTENT", f"API Error: {error_text}")
                         return
 

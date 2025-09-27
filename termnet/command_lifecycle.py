@@ -185,9 +185,7 @@ class CommandLifecycle:
             stage.output = f"Planned execution of: {execution.command}"
             stage.status = StageStatus.COMPLETED
 
-            print(
-                f"📋 Plan: {execution.command} (Risk: {plan_data['risk_assessment']})"
-            )
+            print(f"📋 Plan: {execution.command} (Risk: {plan_data['risk_assessment']})")
 
         except Exception as e:
             stage.status = StageStatus.FAILED

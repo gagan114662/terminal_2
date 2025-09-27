@@ -9,18 +9,27 @@ line_length = 88
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-exclude = [
+extend-exclude = [
+    ".bmad-core",
+    "artifacts",
+    "htmlcov",
     "__pycache__",
-    ".git",
-    ".venv",
-    "build",
-    "dist",
-    "*.egg-info",
 ]
 
 [tool.ruff.lint]
 select = ["E", "W", "F"]
-ignore = ["E203"]
+ignore = ["E501"]  # Let Black own line length
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E402"]
+"scripts/**" = ["E402", "F401", "F541", "F841", "E722"]
+"test_*.py" = ["E402", "E722"]
+"*_test.py" = ["E402", "E722"]
+"run_validation.py" = ["E402"]
+"security/**" = ["E722"]
+"termnet/**" = ["E722", "E402"]
+"artifacts/**" = ["E722", "E402", "E501"]
+".bmad-core/**" = ["E722", "E402", "E501"]
 
 [tool.ruff.format]
 quote-style = "double"

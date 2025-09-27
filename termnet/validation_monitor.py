@@ -115,9 +115,7 @@ class ValidationMonitor:
         self.validation_engine.add_rule(SecurityValidation())
         self.validation_engine.add_rule(TestCoverageValidation())
 
-        print(
-            f"🔍 Monitoring with {len(self.validation_engine.rules)} validation rules"
-        )
+        print(f"🔍 Monitoring with {len(self.validation_engine.rules)} validation rules")
 
     def start_monitoring(self):
         """Start file system monitoring"""
