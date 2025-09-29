@@ -185,6 +185,27 @@ class TestProjectMode(unittest.TestCase):
         self.assertIn("pytest -q", ci_content)
         self.assertIn("pytest tests/acceptance", ci_content)
 
+    def test_project_run_reports_dmvl(self):
+        """Test: -R flag runs DMVL and reports status."""
+        result = subprocess.run(
+            [self.original_cwd + "/scripts/tn", "project", "run", "-R", "dmvl test"],
+            capture_output=True,
+            text=True,
+        )
+
+        # DMVL should run (might PASS or FAIL depending on repo state)
+        self.assertIn("🔎 DMVL:", result.stdout)
+
+        # Check dmvl-verification receipt exists
+        receipts_dir = Path(".termnet/receipts")
+        dmvl_receipts = list(receipts_dir.glob("receipt_*_task_dmvl-verification.json"))
+        self.assertGreater(len(dmvl_receipts), 0, "DMVL receipt should exist")
+
+        # Verify receipt structure
+        dmvl_receipt = json.loads(dmvl_receipts[-1].read_text())
+        self.assertIn("results", dmvl_receipt)
+        self.assertIn("ok", dmvl_receipt)
+
 
 if __name__ == "__main__":
     unittest.main()

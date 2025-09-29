@@ -128,7 +128,17 @@ def cmd_project_run(args):
                 "ok": all_ok(dmvl_results),
             },
         )
-        print("🔎 DMVL:", "PASS" if all_ok(dmvl_results) else "FAIL")
+        dmvl_ok = all_ok(dmvl_results)
+        print("🔎 DMVL:", "PASS" if dmvl_ok else "FAIL")
+
+        # If DMVL failed, advise and exit non-zero
+        if not dmvl_ok:
+            from termnet.devflow import advise_on_failure
+
+            advise_on_failure()
+            import sys
+
+            sys.exit(1)
 
 
 def build_parser():

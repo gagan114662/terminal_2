@@ -71,3 +71,12 @@ class DevFlow:
         except subprocess.CalledProcessError as e:
             self.echo(f"Failed to create PR: {e.stderr}")
             return ""
+
+
+def advise_on_failure():
+    """Print actionable rollback hints when DMVL verification fails."""
+    print("🛑 Verification failed.")
+    print(
+        "Try: git stash -u; rerun; or commit small units; "
+        "or run ./scripts/tn say --dry-run to plan first."
+    )
