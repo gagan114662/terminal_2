@@ -337,7 +337,65 @@ TERMNET_ENFORCE_SLO=true python -m pytest tests/test_slo_guard_pytest.py
 
 ---
 
+## 🤖 How to Run Autonomous Project Mode (DMVL)
+
+TermNet's **Dual-Model Validator Loop (DMVL)** enables autonomous project creation where:
+- **Claude** proposes edits (via `say`/`planner`)
+- **Qwen** verifies claims (lint/tests/commands via Computer-Use)
+- **If all OK** → PR opened + labels
+- **If fail** → receipts + advice
+
+### Environment Setup
+
+```bash
+# Required for Qwen Computer-Use verification
+export CU_URL="http://localhost:5055"
+export DASHSCOPE_API_KEY="your-key-here"
+export QWEN_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+```
+
+### Run a Project
+
+```bash
+# Dry-run (planning only, no edits)
+./scripts/tn project run "Build Flask /ping endpoint" --dry-run
+
+# Real run with DMVL verification
+./scripts/tn project run -R "Build Flask /ping endpoint"
+
+# Real run with DMVL + auto-open PR (if all claims pass)
+./scripts/tn project run -R "Build Flask /ping endpoint" --open-pr --use-computer
+```
+
+### The Contract
+
+1. **Project initialization**: Creates roadmap with "Tests First" → "Implementation" milestones
+2. **DMVL verification pack**:
+   - `git status --porcelain` (repo clean)
+   - `flake8` (lint clean)
+   - `pytest -q` (tests pass)
+3. **Receipt writing**: All verification results → `.termnet/receipts/`
+4. **PR labels**: If `--open-pr` and DMVL passes → adds `termnet:project-mode`, `termnet:dmvl`
+5. **Failure handling**: Exit non-zero + rollback advice
+
+### Inspect Receipts
+
+```bash
+# View latest receipts
+python3 scripts/verify_receipts.py --latest
+
+# View all receipts
+python3 scripts/verify_receipts.py
+```
+
+### Safety
+
+- Dangerous commands (`rm -rf /`, fork bombs, `shutdown`) are blocked by default
+- Override with: `export TERMNET_ALLOW_DANGEROUS=1` (not recommended)
+
+---
+
 ## 📜 License
 
-This project is licensed under the MIT License.  
+This project is licensed under the MIT License.
 See LICENSE for details.
