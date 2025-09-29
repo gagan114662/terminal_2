@@ -164,6 +164,27 @@ class TestProjectMode(unittest.TestCase):
         self.assertIn("@unittest.skip", test_content)
         self.assertIn("test_acceptance_placeholder", test_content)
 
+    def test_ci_bootstrap_on_real(self):
+        """Test: -R flag bootstraps CI workflow."""
+        result = subprocess.run(
+            [self.original_cwd + "/scripts/tn", "project", "run", "-R", "test brief"],
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("✅ CI bootstrapped:", result.stdout)
+
+        # Check CI workflow exists
+        ci_file = Path(".github/workflows/ci.yml")
+        self.assertTrue(ci_file.exists())
+
+        # Verify CI workflow content
+        ci_content = ci_file.read_text()
+        self.assertIn("name: CI", ci_content)
+        self.assertIn("pytest -q", ci_content)
+        self.assertIn("pytest tests/acceptance", ci_content)
+
 
 if __name__ == "__main__":
     unittest.main()

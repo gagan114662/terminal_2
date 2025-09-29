@@ -81,9 +81,14 @@ def cmd_project_run(args):
     test_file = ensure_acceptance_scaffold()
     print(f"✅ Acceptance scaffold: {test_file}")
 
-    # Wire -R flag: write start receipt + verify repo status
+    # Wire -R flag: write start receipt + verify repo status + bootstrap CI
     if args.real:
+        from termnet.ci_bootstrap import ensure_ci
         from termnet.cu_client import verify_claim
+
+        # Bootstrap CI workflow
+        ci_file = ensure_ci()
+        print(f"✅ CI bootstrapped: {ci_file}")
 
         # Write start receipt with args dict (exclude 'func')
         args_dict = {
