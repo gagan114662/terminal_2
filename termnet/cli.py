@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Minimal TermNet CLI fallback"""
 import argparse
+import json
+import os
+from datetime import datetime
 
 BANNER = "📊 Autopilot status: Ready"
 
@@ -21,16 +24,75 @@ def cmd_say(a):
         print("⚙️  Planning complete (dry-run mode)")
 
 
+def cmd_project_run(args):
+    """Initialize a new project with a brief."""
+    brief = args.brief
+
+    # Create .termnet directory
+    os.makedirs(".termnet", exist_ok=True)
+
+    # Prepare project data
+    project_data = {
+        "brief": brief,
+        "args": {
+            "dry_run": args.dry_run,
+            "real": args.real,
+            "open_pr": args.open_pr,
+            "use_computer": args.use_computer,
+        },
+        "created_at": datetime.utcnow().isoformat() + "Z",
+    }
+
+    # Write project.yaml
+    import yaml
+
+    yaml_path = ".termnet/project.yaml"
+    with open(yaml_path, "w", encoding="utf-8") as f:
+        yaml.dump(project_data, f, default_flow_style=False)
+
+    # Write receipt
+    os.makedirs(".termnet/receipts", exist_ok=True)
+    receipt = {
+        "type": "project_init",
+        "yaml_path": yaml_path,
+        "brief": brief,
+        "args": project_data["args"],
+        "created_at": project_data["created_at"],
+    }
+    with open(".termnet/receipts/receipt_project_init.json", "w") as f:
+        json.dump(receipt, f, indent=2)
+
+    print("📦 Project initialized")
+
+
 def build_parser():
     p = argparse.ArgumentParser(prog="termnet.cli", description="TermNet Autopilot CLI")
     s = p.add_subparsers(dest="cmd", required=True)
+
+    # status command
     x = s.add_parser("status")
     x.set_defaults(func=cmd_status)
+
+    # say command
     y = s.add_parser("say")
     y.add_argument("--dry-run", action="store_true", dest="dry_run")
     y.add_argument("-R", "--real", action="store_true", dest="real")
     y.add_argument("task")
     y.set_defaults(func=cmd_say)
+
+    # project command
+    proj = s.add_parser("project", help="Project mode commands")
+    proj_sub = proj.add_subparsers(dest="project_cmd", required=True)
+
+    # project run subcommand
+    proj_run = proj_sub.add_parser("run", help="Initialize a new project")
+    proj_run.add_argument("brief", help="Project brief description")
+    proj_run.add_argument("--dry-run", action="store_true", dest="dry_run")
+    proj_run.add_argument("-R", "--real", action="store_true", dest="real")
+    proj_run.add_argument("--open-pr", action="store_true", dest="open_pr")
+    proj_run.add_argument("--use-computer", action="store_true", dest="use_computer")
+    proj_run.set_defaults(func=cmd_project_run)
+
     return p
 
 
