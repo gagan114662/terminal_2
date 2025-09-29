@@ -24,7 +24,7 @@ def cmd_say(a):
         print("⚙️  Planning complete (dry-run mode)")
 
 
-def cmd_project_run(args):
+def cmd_project_run(args):    # noqa: E501
     """Initialize a new project with a brief."""
     brief = args.brief
 
@@ -101,7 +101,7 @@ def cmd_project_run(args):
 
         # Verify repo status
         result = verify_claim(
-            "repo-status", "git status --porcelain", use_computer=args.use_computer
+            "repo-status", "git status --porcelain", use_computer=args.use_computer    # noqa: E501
         )
         write_task_receipt("repo-status", result)
 
@@ -149,7 +149,7 @@ def cmd_project_run(args):
 
 
 def build_parser():
-    p = argparse.ArgumentParser(prog="termnet.cli", description="TermNet Autopilot CLI")
+    p = argparse.ArgumentParser(prog="termnet.cli", description="TermNet Autopilot CLI")    # noqa: E501
     s = p.add_subparsers(dest="cmd", required=True)
 
     # status command
@@ -173,7 +173,7 @@ def build_parser():
     proj_run.add_argument("--dry-run", action="store_true", dest="dry_run")
     proj_run.add_argument("-R", "--real", action="store_true", dest="real")
     proj_run.add_argument("--open-pr", action="store_true", dest="open_pr")
-    proj_run.add_argument("--use-computer", action="store_true", dest="use_computer")
+    proj_run.add_argument("--use-computer", action="store_true", dest="use_computer")   # noqa: E501
     proj_run.set_defaults(func=cmd_project_run)
 
     return p

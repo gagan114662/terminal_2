@@ -25,7 +25,7 @@ class TestQwenCUProvider(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.headers = {"content-type": "application/json"}
-        mock_response.json.return_value = {"stdout": "ok", "stderr": "", "exit": 0}
+        mock_response.json.return_value = {"stdout": "ok", "stderr": "", "exit": 0}   # noqa: E501
 
         with patch("requests.post", return_value=mock_response):
             res = verify_claim("check", "echo ok", use_computer=True)

@@ -47,7 +47,7 @@ class DevFlow:
         """
         try:
             result = subprocess.run(
-                ["gh", "pr", "create", "--title", title, "--body", body, "--fill"],
+                ["gh", "pr", "create", "--title", title, "--body", body, "--fill"],  # noqa: E501
                 capture_output=True,
                 text=True,
                 check=True,

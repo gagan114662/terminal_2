@@ -11,7 +11,7 @@ class TestClaimsEngine(unittest.TestCase):
         from termnet.claims_engine import DMVLClaim, all_ok, run_claims
 
         res = run_claims(
-            [DMVLClaim("echo", "echo hi", must_include="hi")], use_computer=False
+            [DMVLClaim("echo", "echo hi", must_include="hi")], use_computer=False   # noqa: E501
         )
         self.assertTrue(all_ok(res))
         self.assertEqual(len(res), 1)

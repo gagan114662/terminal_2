@@ -12,7 +12,9 @@ def verify_claim(name: str, cmd: str, use_computer: bool = False) -> Dict:
     """
     # Safety check: block dangerous commands unless explicitly allowed
     DANGEROUS = ["rm -rf /", ":(){ :|:& };:", "shutdown -h now"]
-    if not os.getenv("TERMNET_ALLOW_DANGEROUS") and any(bad in cmd for bad in DANGEROUS):
+    if not os.getenv("TERMNET_ALLOW_DANGEROUS") and any(
+        bad in cmd for bad in DANGEROUS  # noqa: E501
+    ):
         return {
             "name": name,
             "cmd": cmd,

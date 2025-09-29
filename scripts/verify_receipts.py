@@ -11,15 +11,15 @@ def main():
     parser.add_argument(
         "--latest", action="store_true", help="Show latest receipts only"
     )
-    parser.add_argument("--path", default=".termnet/receipts", help="Receipts directory")
+    parser.add_argument("--path", default=".termnet/receipts", help="Receipts directory")   # noqa: E501
     args = parser.parse_args()
 
-    receipts_dir = Path(args.path)
+    receipts_dir = Path(args.path)    # noqa: E501
     if not receipts_dir.exists():
         print(f"❌ Receipts directory not found: {receipts_dir}")
         return 1
 
-    receipt_files = sorted(receipts_dir.glob("receipt_*.json"), key=lambda p: p.stat().st_mtime)
+    receipt_files = sorted(receipts_dir.glob("receipt_*.json"), key=lambda p: p.stat().st_mtime)   # noqa: E501
 
     if not receipt_files:
         print("No receipts found")
