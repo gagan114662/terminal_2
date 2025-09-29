@@ -75,6 +75,12 @@ def cmd_project_run(args):
 
     print(f"🗺️  Roadmap created ({len(roadmap.milestones)} milestones)")
 
+    # Create acceptance test scaffold
+    from termnet.planner import ensure_acceptance_scaffold
+
+    test_file = ensure_acceptance_scaffold()
+    print(f"✅ Acceptance scaffold: {test_file}")
+
     # Wire -R flag: write start receipt + verify repo status
     if args.real:
         from termnet.cu_client import verify_claim

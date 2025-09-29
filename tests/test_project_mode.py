@@ -138,6 +138,32 @@ class TestProjectMode(unittest.TestCase):
         self.assertIn("exit", task_receipt)
         self.assertIn("provider", task_receipt)
 
+    def test_acceptance_scaffold_created(self):
+        """Test: acceptance scaffold is created by project run."""
+        result = subprocess.run(
+            [self.original_cwd + "/scripts/tn", "project", "run", "test brief"],
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("✅ Acceptance scaffold:", result.stdout)
+
+        # Check scaffold files exist
+        acceptance_dir = Path("tests/acceptance")
+        self.assertTrue(acceptance_dir.exists())
+
+        init_file = acceptance_dir / "__init__.py"
+        self.assertTrue(init_file.exists())
+
+        test_file = acceptance_dir / "test_acceptance_smoke.py"
+        self.assertTrue(test_file.exists())
+
+        # Verify test file has skipped test
+        test_content = test_file.read_text()
+        self.assertIn("@unittest.skip", test_content)
+        self.assertIn("test_acceptance_placeholder", test_content)
+
 
 if __name__ == "__main__":
     unittest.main()

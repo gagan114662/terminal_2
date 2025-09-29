@@ -438,3 +438,48 @@ def plan_project(brief: str) -> Roadmap:
     )
 
     return Roadmap(brief=brief, milestones=[milestone1, milestone2])
+
+
+def ensure_acceptance_scaffold() -> str:
+    """
+    Create acceptance test scaffold if it doesn't exist.
+    Idempotent: safe to call multiple times.
+
+    Returns:
+        Path to created/existing acceptance test file
+    """
+    import os
+    from pathlib import Path
+
+    # Create tests/acceptance directory
+    acceptance_dir = Path("tests/acceptance")
+    acceptance_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create __init__.py
+    init_file = acceptance_dir / "__init__.py"
+    if not init_file.exists():
+        init_file.write_text('"""Acceptance tests for Project Mode."""\n')
+
+    # Create smoke test scaffold
+    test_file = acceptance_dir / "test_acceptance_smoke.py"
+    if not test_file.exists():
+        test_content = '''"""Smoke test scaffold for acceptance testing."""
+
+import unittest
+
+
+class TestAcceptanceSmoke(unittest.TestCase):
+    """Acceptance test scaffold."""
+
+    @unittest.skip("Generated scaffold - implement acceptance criteria")
+    def test_acceptance_placeholder(self):
+        """Placeholder test for acceptance criteria."""
+        self.fail("Replace with actual acceptance test")
+
+
+if __name__ == "__main__":
+    unittest.main()
+'''
+        test_file.write_text(test_content)
+
+    return str(test_file)
