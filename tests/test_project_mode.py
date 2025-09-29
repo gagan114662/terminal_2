@@ -90,6 +90,19 @@ class TestProjectMode(unittest.TestCase):
         self.assertEqual(roadmap.milestones[1].name, "Implementation")
         self.assertEqual(roadmap.brief, "test project")
 
+    def test_run_gates_smoke(self):
+        """Test: run_gates returns dict with flake8 and pytest keys."""
+        import sys
+
+        sys.path.insert(0, self.original_cwd)
+        from termnet.gates import run_gates
+
+        res = run_gates()
+        self.assertIn("flake8", res)
+        self.assertIn("pytest", res)
+        self.assertIsInstance(res["flake8"], int)
+        self.assertIsInstance(res["pytest"], int)
+
 
 if __name__ == "__main__":
     unittest.main()
