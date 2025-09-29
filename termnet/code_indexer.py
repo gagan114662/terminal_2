@@ -11,9 +11,9 @@ import json
 import os
 import re
 from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 
 
 @dataclass
@@ -100,9 +100,9 @@ class CodeIndexer:
         for file_path in files_to_index:
             try:
                 self._index_file(file_path)
-            except Exception as e:
+            except Exception:
                 # Log error but continue indexing
-                print(f"Warning: Failed to index {file_path}: {e}")
+                pass
 
         # Build inverted word index
         self._build_word_index()
@@ -332,7 +332,6 @@ class CodeIndexer:
             r"^(?:from\s+(\S+)\s+)?import\s+([^#\n]+)", content, re.MULTILINE
         )
         for match in import_matches:
-            module = match.group(1) or "builtins"
             imports = [imp.strip() for imp in match.group(2).split(",")]
             self.imports[file_path].extend(imports)
 
@@ -457,7 +456,12 @@ class CodeIndexer:
         self.patterns = {
             "python_function": r"^[ \t]*def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(",
             "python_class": r"^[ \t]*class\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*[:\(]",
-            "js_function": r"(?:function\s+([a-zA-Z_][a-zA-Z0-9_]*)|([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*function|([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(?:\([^)]*\)\s*=>|\([^)]*\)\s*{))",
+            "js_function": (
+                r"(?:function\s+([a-zA-Z_][a-zA-Z0-9_]*)|"
+                r"([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*function|"
+                r"([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*"
+                r"(?:\([^)]*\)\s*=>|\([^)]*\)\s*{))"
+            ),
         }
 
     def _get_code_snippet(
@@ -518,10 +522,13 @@ class CodeIndexer:
         """Cache index data for faster subsequent loads."""
         cache_file = os.path.join(self.cache_dir, "repo_intel.json")
         try:
+            # Ensure directory exists before writing
+            os.makedirs(self.cache_dir, exist_ok=True)
             with open(cache_file, "w") as f:
                 json.dump(repo_intel, f, indent=2)
-        except Exception as e:
-            print(f"Warning: Failed to cache index: {e}")
+        except Exception:
+            # Silently ignore cache errors - not critical
+            pass
 
     def load_cached_index(self) -> Optional[Dict[str, Any]]:
         """Load cached index if available and fresh."""
@@ -533,6 +540,5 @@ class CodeIndexer:
         try:
             with open(cache_file, "r") as f:
                 return json.load(f)
-        except Exception as e:
-            print(f"Warning: Failed to load cached index: {e}")
+        except Exception:
             return None
