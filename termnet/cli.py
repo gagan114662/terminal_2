@@ -118,7 +118,7 @@ def cmd_project_run(args):    # noqa: E501
                 must_exit_zero=True,
             ),
             DMVLClaim("lint", "flake8", must_exit_zero=True),
-            DMVLClaim("tests", "pytest -q", must_exit_zero=True),
+            DMVLClaim("tests", "env PYTHONPATH=. python3 -m pytest -q", must_exit_zero=True),
         ]
         dmvl_results = run_claims(claims, use_computer=args.use_computer)
         write_task_receipt(
