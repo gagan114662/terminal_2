@@ -383,3 +383,58 @@ class WorkPlanner:
                     queue.append(neighbor)
 
         return result
+
+
+# Project Mode additions
+@dataclass
+class Task:
+    """A single task within a milestone (Project Mode)."""
+
+    id: str
+    desc: str
+
+
+@dataclass
+class Milestone:
+    """A project milestone containing tasks (Project Mode)."""
+
+    id: str
+    name: str
+    tasks: List[Task]
+
+
+@dataclass
+class Roadmap:
+    """Complete project roadmap (Project Mode)."""
+
+    brief: str
+    milestones: List[Milestone]
+
+    def to_dict(self):
+        """Convert roadmap to dictionary for JSON serialization."""
+        return asdict(self)
+
+
+def plan_project(brief: str) -> Roadmap:
+    """
+    Create a project roadmap from a brief.
+
+    Args:
+        brief: Project description
+
+    Returns:
+        Roadmap with two milestones: Tests First and Implementation
+    """
+    milestone1 = Milestone(
+        id="m1",
+        name="Tests First",
+        tasks=[Task(id="m1t1", desc="Write failing acceptance tests")],
+    )
+
+    milestone2 = Milestone(
+        id="m2",
+        name="Implementation",
+        tasks=[Task(id="m2t1", desc="Implement to green")],
+    )
+
+    return Roadmap(brief=brief, milestones=[milestone1, milestone2])

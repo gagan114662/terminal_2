@@ -64,6 +64,17 @@ def cmd_project_run(args):
 
     print("📦 Project initialized")
 
+    # Create roadmap
+    from termnet.planner import plan_project
+    from termnet.receipts import write_project_receipt
+
+    roadmap = plan_project(brief)
+
+    # Write roadmap receipt
+    write_project_receipt("roadmap", roadmap.to_dict())
+
+    print(f"🗺️  Roadmap created ({len(roadmap.milestones)} milestones)")
+
 
 def build_parser():
     p = argparse.ArgumentParser(prog="termnet.cli", description="TermNet Autopilot CLI")

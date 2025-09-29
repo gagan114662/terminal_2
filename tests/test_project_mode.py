@@ -76,6 +76,20 @@ class TestProjectMode(unittest.TestCase):
             receipt = json.load(f)
         self.assertEqual(receipt["brief"], "demo")
 
+    def test_plan_project_shapes_roadmap(self):
+        """Test: plan_project returns correct roadmap shape."""
+        import sys
+
+        sys.path.insert(0, self.original_cwd)
+        from termnet.planner import plan_project
+
+        roadmap = plan_project("test project")
+
+        self.assertEqual(len(roadmap.milestones), 2)
+        self.assertEqual(roadmap.milestones[0].name, "Tests First")
+        self.assertEqual(roadmap.milestones[1].name, "Implementation")
+        self.assertEqual(roadmap.brief, "test project")
+
 
 if __name__ == "__main__":
     unittest.main()
