@@ -1,8 +1,7 @@
 import asyncio
-import time
 
-from termnet.tools.terminal import TerminalSession
 from termnet.agent import TermNetAgent
+from termnet.tools.terminal import TerminalSession
 
 
 async def main():
@@ -16,9 +15,8 @@ async def main():
         user_input = await loop.run_in_executor(None, input, "You: ")
         if user_input.lower() in ("exit", "quit"):
             break
-        start = time.time()
-        await agent.chat(user_input)
-        #print(f"\nTime Elapsed: {time.time()-start:.1f}s\n")
+        response = await agent.chat(user_input)
+        print(f"TermNet: {response}")
 
     await term.stop()
     print("Closed.")

@@ -1,0 +1,265 @@
+name: TermNet Autonomous Operations
+
+on:
+  schedule:
+    # Run every 30 minutes during business hours (9 AM - 6 PM UTC)
+    - cron: '*/30 9-18 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: 'Force run autonomous processing'
+        required: false
+        default: 'false'
+  pull_request:
+    types: [opened]
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '3.11'
+  PYTHONPATH: '.'
+
+jobs:
+  # Autonomous task processing
+  autonomous-processor:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install requests
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "TermNet Bot"
+          git config --global user.email "termnet-bot@users.noreply.github.com"
+
+      - name: Run autonomous task processor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/auto_task_runner.py \
+            --owner ${{ github.repository_owner }} \
+            --repo ${{ github.event.repository.name }} \
+            --once \
+            --max-tasks 3
+
+      - name: Verify receipts
+        if: always()
+        run: |
+          python scripts/verify_receipts.py --summary
+
+  # Auto-merge for TermNet bot PRs
+  auto-merge:
+    if: github.event_name == 'pull_request' && github.actor == 'termnet-bot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run safety checks
+        id: safety
+        run: |
+          echo "🔍 Running safety checks..."
+
+          # Check if this is an auto-generated PR
+          if [[ "${{ github.event.pull_request.title }}" == Auto:* ]]; then
+            echo "✅ Auto-generated PR detected"
+            echo "auto_pr=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Not an auto-generated PR"
+            echo "auto_pr=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Verify receipts exist and are valid
+          python scripts/verify_receipts.py --summary
+          if [ $? -eq 0 ]; then
+            echo "✅ Receipts verified"
+            echo "receipts_valid=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Receipt verification failed"
+            echo "receipts_valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Run tests to ensure no regressions
+          PYTHONPATH=. python -m pytest tests/ -v --tb=short
+          if [ $? -eq 0 ]; then
+            echo "✅ Tests passed"
+            echo "tests_passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Tests failed"
+            echo "tests_passed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Auto-merge PR
+        if: steps.safety.outputs.auto_pr == 'true' && steps.safety.outputs.receipts_valid == 'true' && steps.safety.outputs.tests_passed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚀 Auto-merging PR #${{ github.event.pull_request.number }}"
+
+          # Merge the PR
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --auto \
+            --squash \
+            --delete-branch
+
+          echo "✅ PR merged successfully"
+
+      - name: Comment on failure
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "❌ **Auto-merge failed**
+
+          Safety checks failed. Manual review required.
+
+          - Auto PR: ${{ steps.safety.outputs.auto_pr }}
+          - Receipts Valid: ${{ steps.safety.outputs.receipts_valid }}
+          - Tests Passed: ${{ steps.safety.outputs.tests_passed }}
+
+          Please review and merge manually if appropriate."
+
+  # Auto-revert mechanism (triggered by workflow_dispatch with revert input)
+  auto-revert:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.revert_commit != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "TermNet Bot"
+          git config --global user.email "termnet-bot@users.noreply.github.com"
+
+      - name: Create revert PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ github.event.inputs.revert_commit }}
+        run: |
+          echo "🔄 Creating revert for commit $COMMIT_SHA"
+
+          # Create revert branch
+          BRANCH_NAME="auto/revert-$COMMIT_SHA"
+          git checkout -b "$BRANCH_NAME"
+
+          # Create revert commit
+          git revert --no-edit "$COMMIT_SHA"
+
+          # Push revert branch
+          git push origin "$BRANCH_NAME"
+
+          # Create revert PR
+          gh pr create \
+            --title "Auto-revert: $COMMIT_SHA" \
+            --body "🔄 **Auto-generated revert**
+
+          Reverts commit $COMMIT_SHA due to detected issues.
+
+          This revert was triggered automatically by the monitoring system." \
+            --head "$BRANCH_NAME" \
+            --base main
+
+  # Monitoring and health checks
+  health-check:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run health checks
+        run: |
+          echo "🏥 Running TermNet health checks..."
+
+          # Check autopilot functionality
+          PYTHONPATH=. python -c "
+          from termnet.autopilot import Autopilot
+          autopilot = Autopilot(dry_run=True)
+          result = autopilot.run('health check')
+          print('✅ Autopilot health check passed')
+          "
+
+          # Verify receipt system
+          python scripts/verify_receipts.py --summary
+
+          # Quick test suite
+          PYTHONPATH=. python -m pytest tests/test_autopilot_regression.py -v --tb=short
+
+          echo "✅ All health checks passed"
+
+      - name: Report health status
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✅ TermNet autonomous system is healthy"
+          else
+            echo "❌ TermNet autonomous system health check failed"
+
+            # Create issue for health check failure
+            gh issue create \
+              --title "🚨 TermNet Autonomous System Health Check Failed" \
+              --body "Automated health check failed. Please investigate.
+
+              Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              --label "bug,auto"
+          fi
