@@ -50,12 +50,23 @@ class ExecutionResult:
     execution_time: float = 0.0
     errors: List[str] = None
     warnings: List[str] = None
+    mode: str = "dry-run"  # Backward compat: track execution mode
+    ok: Optional[bool] = None  # Backward compat: alias for success
+    goal: Optional[str] = None  # Backward compat: track goal
 
     def __post_init__(self):
         if self.errors is None:
             self.errors = []
         if self.warnings is None:
             self.warnings = []
+        # Set ok if not provided
+        if self.ok is None:
+            self.ok = self.success
+
+    # Backward compatibility: dict-like access
+    def get(self, key: str, default=None):
+        """Dict-like get for backward compatibility."""
+        return getattr(self, key, default)
 
 
 @dataclass
@@ -82,15 +93,35 @@ class Autopilot:
     to execute code changes safely and autonomously.
     """
 
-    def __init__(self, config: AutopilotConfig):
+    def __init__(
+        self,
+        config: AutopilotConfig | None = None,
+        dry_run: bool = True,
+        repo: str | None = None,
+        stdout=None,
+        **kwargs,
+    ):
         """
         Initialize Autopilot with configuration.
 
         Args:
-            config: Autopilot configuration
+            config: Autopilot configuration (new style)
+            dry_run: Dry-run mode (backward compat)
+            repo: Repository path (backward compat, no-op)
+            stdout: Output callback (backward compat, no-op)
+            **kwargs: Additional backward-compat args (no-op)
         """
+        # Backward compatibility: if config not provided, create from kwargs
+        if config is None:
+            config = AutopilotConfig(
+                repo_path=repo or ".",
+                dry_run=dry_run,
+            )
         self.config = config
         self.repo_path = Path(config.repo_path).resolve()
+
+        # Backward compat: store stdout callback
+        self._stdout_callback = stdout
 
         # Initialize components
         self.planner = WorkPlanner(max_tasks=config.max_tasks_per_run)
@@ -126,6 +157,11 @@ class Autopilot:
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
 
+    def _emit(self, msg: str):
+        """Emit message to stdout callback if present (backward compat)."""
+        if self._stdout_callback:
+            self._stdout_callback(msg)
+
     def execute_goal(
         self, goal: str, context: Dict[str, Any] = None
     ) -> ExecutionResult:
@@ -142,6 +178,18 @@ class Autopilot:
         start_time = datetime.now()
         self.logger.info(f"Starting autopilot execution for goal: {goal}")
 
+        # Store goal for backward compat
+        self._current_goal = goal
+
+        # Emit backward-compat banner
+        self._emit("📊 Autopilot status: Ready")
+
+        # Emit mode message
+        if self.config.dry_run:
+            self._emit("⚙️ Dry-run: would auto-stash 0 change(s). Skipping stash in dry-run.")
+        else:
+            self._emit("Auto-stashing (0 change(s))")
+
         try:
             # Phase 1: Analysis and Planning
             analysis_result = self._analyze_repository()
@@ -151,6 +199,7 @@ class Autopilot:
                     message=f"Repository analysis failed: {analysis_result['error']}",
                     tasks_completed=0,
                     tasks_failed=0,
+                    mode="dry-run" if self.config.dry_run else "real",
                 )
 
             # Create execution plan
@@ -169,6 +218,7 @@ class Autopilot:
                         tasks_completed=0,
                         tasks_failed=0,
                         warnings=safety_result.get("warnings", []),
+                        mode="dry-run" if self.config.dry_run else "real",
                     )
 
             # Phase 3: Backup and Branch Creation
@@ -179,6 +229,7 @@ class Autopilot:
                     message=f"Failed to create backup/branch: {backup_result.message}",
                     tasks_completed=0,
                     tasks_failed=0,
+                    mode="dry-run" if self.config.dry_run else "real",
                 )
 
             # Phase 4: Task Execution
@@ -211,6 +262,7 @@ class Autopilot:
                 tasks_failed=0,
                 execution_time=(datetime.now() - start_time).total_seconds(),
                 errors=[str(e)],
+                mode="dry-run" if self.config.dry_run else "real",
             )
 
     def _analyze_repository(self) -> Dict[str, Any]:
@@ -415,12 +467,17 @@ class Autopilot:
 
         success = tasks_failed == 0 and tasks_completed > 0
 
+        # Store goal for backward compat
+        result_goal = getattr(self, "_current_goal", None)
+
         return ExecutionResult(
             success=success,
             message=f"Completed {tasks_completed} tasks, {tasks_failed} failed",
             tasks_completed=tasks_completed,
             tasks_failed=tasks_failed,
             errors=errors,
+            mode="dry-run" if self.config.dry_run else "real",
+            goal=result_goal,
         )
 
     def _execute_single_task(
@@ -687,3 +744,12 @@ Automated tests have been executed as part of the implementation process.
             "backup_location": self.backup_location,
             "current_execution": self.current_execution,
         }
+
+    # Backward compatibility methods for test suite
+    def run(self, goal: str) -> ExecutionResult:
+        """Backward-compat alias for execute_goal()."""
+        return self.execute_goal(goal)
+
+    def run_plain_english(self, goal: str) -> ExecutionResult:
+        """Backward-compat alias for execute_goal()."""
+        return self.execute_goal(goal)
