@@ -10,6 +10,18 @@ def verify_claim(name: str, cmd: str, use_computer: bool = False) -> Dict:
     Run a verification command either locally or via Computer-Use HTTP.
     Returns: {'name','cmd','exit','stdout','stderr', 'provider': <str>}
     """
+    # Safety check: block dangerous commands unless explicitly allowed
+    DANGEROUS = ["rm -rf /", ":(){ :|:& };:", "shutdown -h now"]
+    if not os.getenv("TERMNET_ALLOW_DANGEROUS") and any(bad in cmd for bad in DANGEROUS):
+        return {
+            "name": name,
+            "cmd": cmd,
+            "exit": 123,
+            "stdout": "",
+            "stderr": "blocked dangerous cmd",
+            "provider": "local",
+        }
+
     if not use_computer:
         p = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         return {

@@ -33,6 +33,15 @@ class TestQwenCUProvider(unittest.TestCase):
             self.assertEqual(res["stdout"], "ok")
             self.assertEqual(res["provider"], "qwen-vl-cu")
 
+    def test_verify_claim_blocks_dangerous_cmd(self):
+        """Test: verify_claim blocks dangerous commands."""
+        from termnet.cu_client import verify_claim
+
+        res = verify_claim("dangerous", "rm -rf /", use_computer=False)
+        self.assertEqual(res["exit"], 123)
+        self.assertIn("blocked dangerous cmd", res["stderr"])
+        self.assertEqual(res["provider"], "local")
+
 
 if __name__ == "__main__":
     unittest.main()
