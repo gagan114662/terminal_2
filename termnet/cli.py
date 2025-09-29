@@ -66,7 +66,7 @@ def cmd_project_run(args):
 
     # Create roadmap
     from termnet.planner import plan_project
-    from termnet.receipts import write_project_receipt
+    from termnet.receipts import write_project_receipt, write_task_receipt
 
     roadmap = plan_project(brief)
 
@@ -74,6 +74,27 @@ def cmd_project_run(args):
     write_project_receipt("roadmap", roadmap.to_dict())
 
     print(f"🗺️  Roadmap created ({len(roadmap.milestones)} milestones)")
+
+    # Wire -R flag: write start receipt + verify repo status
+    if args.real:
+        from termnet.cu_client import verify_claim
+
+        # Write start receipt with args dict (exclude 'func')
+        args_dict = {
+            "dry_run": args.dry_run,
+            "real": args.real,
+            "open_pr": args.open_pr,
+            "use_computer": args.use_computer,
+        }
+        write_project_receipt("start", {"brief": brief, "args": args_dict})
+
+        # Verify repo status
+        result = verify_claim(
+            "repo-status", "git status --porcelain", use_computer=args.use_computer
+        )
+        write_task_receipt("repo-status", result)
+
+        print("✅ Project kickoff receipts written")
 
 
 def build_parser():

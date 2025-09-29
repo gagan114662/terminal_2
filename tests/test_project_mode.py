@@ -103,6 +103,41 @@ class TestProjectMode(unittest.TestCase):
         self.assertIsInstance(res["flake8"], int)
         self.assertIsInstance(res["pytest"], int)
 
+    def test_project_run_real_writes_receipts(self):
+        """Test: project run -R writes start and repo-status receipts."""
+        result = subprocess.run(
+            [self.original_cwd + "/scripts/tn", "project", "run", "-R", "test brief"],
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("✅ Project kickoff receipts written", result.stdout)
+
+        # Check for timestamped receipts
+        receipts_dir = Path(".termnet/receipts")
+        self.assertTrue(receipts_dir.exists())
+
+        receipt_files = list(receipts_dir.glob("receipt_*_start.json"))
+        self.assertGreater(len(receipt_files), 0, "Start receipt should exist")
+
+        task_receipt_files = list(receipts_dir.glob("receipt_*_task_repo-status.json"))
+        self.assertGreater(
+            len(task_receipt_files), 0, "Repo-status task receipt should exist"
+        )
+
+        # Verify start receipt contains brief and args
+        start_receipt = json.loads(receipt_files[0].read_text())
+        self.assertEqual(start_receipt["brief"], "test brief")
+        self.assertIn("args", start_receipt)
+
+        # Verify repo-status receipt has expected keys
+        task_receipt = json.loads(task_receipt_files[0].read_text())
+        self.assertIn("name", task_receipt)
+        self.assertIn("cmd", task_receipt)
+        self.assertIn("exit", task_receipt)
+        self.assertIn("provider", task_receipt)
+
 
 if __name__ == "__main__":
     unittest.main()
