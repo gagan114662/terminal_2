@@ -107,6 +107,29 @@ def cmd_project_run(args):
 
         print("✅ Project kickoff receipts written")
 
+        # DMVL verification pack
+        from termnet.claims_engine import DMVLClaim, all_ok, run_claims
+
+        claims = [
+            DMVLClaim(
+                "repo-status",
+                "git status --porcelain",
+                must_include="",
+                must_exit_zero=True,
+            ),
+            DMVLClaim("lint", "flake8", must_exit_zero=True),
+            DMVLClaim("tests", "pytest -q", must_exit_zero=True),
+        ]
+        dmvl_results = run_claims(claims, use_computer=args.use_computer)
+        write_task_receipt(
+            "dmvl-verification",
+            {
+                "results": [r.__dict__ for r in dmvl_results],
+                "ok": all_ok(dmvl_results),
+            },
+        )
+        print("🔎 DMVL:", "PASS" if all_ok(dmvl_results) else "FAIL")
+
 
 def build_parser():
     p = argparse.ArgumentParser(prog="termnet.cli", description="TermNet Autopilot CLI")
