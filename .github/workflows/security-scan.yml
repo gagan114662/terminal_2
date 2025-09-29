@@ -36,7 +36,7 @@ jobs:
           output-format: spdx-json
 
       - name: Upload SBOM
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sbom-${{ github.sha }}
           path: sbom.spdx.json
@@ -65,7 +65,7 @@ jobs:
           output-file: grype-report.json
 
       - name: Upload Grype results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: grype-report-${{ github.sha }}
           path: grype-report.json
@@ -112,7 +112,7 @@ jobs:
           EOF
 
       - name: Upload Security Receipt
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-receipt-${{ github.sha }}
           path: security-receipt.json
