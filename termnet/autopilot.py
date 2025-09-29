@@ -118,10 +118,12 @@ class Autopilot:
         """
         # Backward compatibility: if config not provided, create from kwargs
         if config is None:
+            # Safety checks enabled by default, but can be disabled via env for legacy tests
+            legacy_safety = os.environ.get("TERMNET_LEGACY_SAFETY", "0") == "1"
             config = AutopilotConfig(
                 repo_path=repo or ".",
                 dry_run=dry_run,
-                safety_checks=False,  # Disable for legacy test compat
+                safety_checks=not legacy_safety,  # Default True, legacy tests can override
             )
         self.config = config
         self.repo_path = Path(config.repo_path).resolve()

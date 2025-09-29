@@ -22,6 +22,9 @@ class TestAutopilotRegression(unittest.TestCase):
         self.test_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
 
+        # Disable safety checks for legacy test compatibility
+        os.environ["TERMNET_LEGACY_SAFETY"] = "1"
+
         # Initialize a git repo for testing
         os.chdir(self.test_dir)
         subprocess.run(["git", "init"], check=True, capture_output=True)
@@ -40,6 +43,8 @@ class TestAutopilotRegression(unittest.TestCase):
         import shutil
 
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up env var
+        os.environ.pop("TERMNET_LEGACY_SAFETY", None)
 
     def test_clean_repo_only_banner(self):
         """Test: clean repo → only banner message."""
