@@ -174,3 +174,20 @@ class GitClient:
             return result.stdout.strip()
         except Exception as e:
             return f"Error: {e}"
+
+
+def add_pr_labels(labels: list) -> None:
+    """Add labels to the current PR (best-effort using gh CLI)."""
+    import shutil
+
+    if not shutil.which("gh"):
+        return
+
+    try:
+        subprocess.run(
+            ["gh", "pr", "edit", "--add-label", ",".join(labels)],
+            capture_output=True,
+            check=False,
+        )
+    except Exception:
+        pass  # Best-effort, ignore errors

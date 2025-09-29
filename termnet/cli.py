@@ -140,6 +140,13 @@ def cmd_project_run(args):
 
             sys.exit(1)
 
+        # If --open-pr and DMVL passed, add labels
+        if args.open_pr:
+            from termnet.git_client import add_pr_labels
+
+            add_pr_labels(["termnet:project-mode", "termnet:dmvl"])
+            print("🏷️  PR labels added (if PR exists)")
+
 
 def build_parser():
     p = argparse.ArgumentParser(prog="termnet.cli", description="TermNet Autopilot CLI")
