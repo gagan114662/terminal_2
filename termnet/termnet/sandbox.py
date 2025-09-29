@@ -794,29 +794,3 @@ class SandboxManager:
             if security_level in [SecurityLevel.ISOLATED, SecurityLevel.RESTRICTED]
             else SandboxType.PROCESS.value,
         }
-
-
-# ---- Test seam for unit tests that patch `termnet.sandbox.Sandbox` ----
-# TEST SEAM: Export canonical name for tests
-try:  # narrow aliasing only if base exists
-    Sandbox  # type: ignore[name-defined]
-except NameError:  # alias once
-    try:
-        from typing import TYPE_CHECKING
-        # pick the most appropriate concrete sandbox class if present
-        _Preferred = ProcessSandbox  # replace with the best existing class name if available
-        class Sandbox(_Preferred):  # pragma: no cover
-            """Alias to satisfy tests; tests patch this symbol."""
-            pass
-    except NameError:
-        class Sandbox:  # pragma: no cover
-            """Minimal placeholder; tests patch this symbol with a mock."""
-            pass
-
-try:
-    __all__  # type: ignore[var-annotated]
-except NameError:
-    __all__ = []
-if "Sandbox" not in __all__:
-    __all__.append("Sandbox")
-# ----------------------------------------------------------------------
