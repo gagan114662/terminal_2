@@ -1,0 +1,11 @@
+.logs/
+.termnet/receipts/
+__pycache__/
+*.pyc
+termnet.log
+.cache/
+.pytest_cache/
+*.tmp
+tmpfile.txt
+config.json.bak
+tests/generated/
