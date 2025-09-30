@@ -9,3 +9,9 @@ termnet.log
 tmpfile.txt
 config.json.bak
 tests/generated/
+
+# bytecode / caches
+__pycache__/
+*.py[cod]
+*.pyo
+.DS_Store
