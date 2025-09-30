@@ -23,7 +23,7 @@
     "auditor": "qwen-vl-plus"
   },
   "audit": {
-    "enabled": false,
+    "enabled": true,
     "min_score": 0.7
   },
   "providers": {

@@ -332,28 +332,42 @@ class TermNetAgent:
         yield ("CONTENT", "Mock LLM response")
 
 
-def finalize_output(user_goal: str, claude_output: str, context: str = "") -> dict:
-    """
-    Finalize output with auditor gate (if enabled).
-    Returns: {"ok": True/False, "reason": str (if not ok), "audit": dict (if audit ran)}
-    """
-    try:
-        # Import CONFIG lazily to avoid circular deps
+_AUD = None
+
+
+def _auditor():
+    """Lazy singleton auditor instance."""
+    global _AUD
+    if _AUD is None:
         from termnet.auditor_agent import AuditorAgent
         from termnet.config import CONFIG
 
-        # Only run if audit is enabled
-        if not CONFIG.get("audit", {}).get("enabled", False):
-            return {"ok": True}
-
-        # Initialize auditor
-        aud = AuditorAgent(
+        _AUD = AuditorAgent(
             model=CONFIG.get("models", {}).get("auditor", "qwen-vl-plus"),
             provider=CONFIG.get("providers", {}).get("auditor", "dashscope"),
             min_score=CONFIG.get("audit", {}).get("min_score", 0.7),
         )
+    return _AUD
 
-        # Run audit
+
+def finalize_output(user_goal: str, claude_output: str, context: str = "") -> dict:
+    """
+    Finalize output with auditor gate (if enabled).
+    FAIL-CLOSED: Any audit error blocks output.
+    Returns: {"ok": True/False, "reason": str (if not ok), "audit": dict (if audit ran)}
+    """
+    from termnet.config import CONFIG
+
+    # Only run if audit is enabled
+    if not CONFIG.get("audit", {}).get("enabled", False):
+        return {"ok": True}
+
+    # FAIL-CLOSED: catch any errors and block
+    try:
+        import json
+        import time
+
+        aud = _auditor()
         res = aud.audit(
             user_goal=user_goal, claude_output=claude_output, context=context
         )
@@ -372,8 +386,18 @@ def finalize_output(user_goal: str, claude_output: str, context: str = "") -> di
         except Exception:
             pass  # Soft-dep: don't fail if trajectory logger unavailable
 
-        # Fail if verdict is fail
-        if res.verdict == "fail":
+        # Write audit receipt to logs/audit/
+        try:
+            os.makedirs("logs/audit", exist_ok=True)
+            receipt_path = f"logs/audit/aud_{int(time.time())}.json"
+            with open(receipt_path, "w") as f:
+                json.dump(res.payload, f, indent=2)
+        except Exception:
+            pass  # Don't fail on receipt write errors
+
+        # Fail if verdict is fail OR score below threshold
+        min_score = CONFIG.get("audit", {}).get("min_score", 0.7)
+        if res.verdict == "fail" or float(res.score) < min_score:
             # Log receipt if claims_engine available
             try:
                 from termnet.claims_engine import claims_engine
@@ -391,9 +415,22 @@ def finalize_output(user_goal: str, claude_output: str, context: str = "") -> di
         return {"ok": True, "audit": res.payload}
 
     except Exception as e:
-        # Don't hard-fail on auditor errors - log and continue
-        print(f"⚠️  Auditor error (non-blocking): {e}")
-        return {"ok": True, "reason": f"Auditor error (non-blocking): {e}"}
+        # FAIL-CLOSED: auditor errors block output
+        try:
+            from termnet.trajectory_logger import log_step
+
+            log_step({"step_type": "audit_error", "error": str(e)})
+        except Exception:
+            pass
+
+        try:
+            from termnet.claims_engine import claims_engine
+
+            claims_engine.fail("auditor_error", {"error": str(e)})
+        except Exception:
+            pass
+
+        return {"ok": False, "reason": f"Auditor error (fail-closed): {e}"}
 
 
 # Back-compat alias expected by some tests
