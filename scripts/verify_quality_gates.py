@@ -115,12 +115,34 @@ if sem_hits == 0:
     # cap semantic hits to reasonable range
     sem_hits = max(1, min(sem_hits, 50))
 
+# ---- Auditor (optional gate) ----
+# Check if audit.enabled is true in config.json
+auditor_enabled = False
+auditor_check = True  # default PASS if disabled
+try:
+    cfg_path = os.path.join(os.path.dirname(__file__), "..", "termnet", "config.json")
+    if os.path.exists(cfg_path):
+        with open(cfg_path, "r") as f:
+            cfg = json.load(f)
+            auditor_enabled = cfg.get("audit", {}).get("enabled", False)
+except Exception:
+    pass
+
+# If enabled, check for DASHSCOPE_API_KEY and validate it's configured
+if auditor_enabled:
+    dashscope_key = os.environ.get("DASHSCOPE_API_KEY")
+    if dashscope_key:
+        auditor_check = True  # PASS if key is set (actual audit runs in runtime)
+    else:
+        auditor_check = False  # FAIL if enabled but no key
+
 summary = {
     "rag": {"results": rag_results, "confidence": rag_conf},
     "react": {"steps": react_steps, "insights": react_ins},
     "analyzer": {"files_analyzed": an_files, "entities_found": an_ent},
     "semantic": {"hits": sem_hits},
     "orchestrator": {"steps": steps_count},
+    "auditor": {"enabled": auditor_enabled, "configured": auditor_check},
 }
 checks = {
     "RAG": rag_results >= THRESH["rag"]["min_results"]
@@ -131,6 +153,7 @@ checks = {
     and an_ent >= THRESH["analyzer"]["min_entities"],
     "Semantic": sem_hits >= THRESH["semantic"]["min_hits"],
     "Orchestrator": steps_count >= THRESH["orchestrator"]["min_steps"],
+    "Auditor": auditor_check,
 }
 overall = all(checks.values())
 

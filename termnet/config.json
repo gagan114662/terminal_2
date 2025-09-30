@@ -17,5 +17,16 @@
   "MEMORY_WINDOW": 12,
   "MEMORY_SUMMARY_LIMIT": 1000,
   "CACHE_TTL_SEC": 60,
-  "STREAM_CHUNK_DELAY": 0
+  "STREAM_CHUNK_DELAY": 0,
+  "models": {
+    "executor": "anthropic/claude-3.7-sonnet",
+    "auditor": "qwen-vl-plus"
+  },
+  "audit": {
+    "enabled": true,
+    "min_score": 0.7
+  },
+  "providers": {
+    "auditor": "dashscope"
+  }
 }
