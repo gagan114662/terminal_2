@@ -1,0 +1,30 @@
+[run]
+source = termnet
+omit =
+    */tests/*
+    */test_*
+    */__pycache__/*
+    */site-packages/*
+    */.venv/*
+    */venv/*
+
+[report]
+precision = 2
+show_missing = True
+skip_covered = False
+
+# Coverage thresholds - fail if below these
+fail_under = 85
+
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+    @abc.abstractmethod
+
+[html]
+directory = htmlcov

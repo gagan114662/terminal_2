@@ -1,31 +1,40 @@
 # Testing dependencies
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.1.0
-pytest-mock>=3.11.0
-pytest-timeout>=2.1.0
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+pytest-mock==3.14.0
+pytest-timeout==2.3.1
+hypothesis==6.123.3
+
+# Fuzzing
+atheris==2.3.0
 
 # Code quality
-black>=23.0.0
-isort>=5.12.0
-flake8>=6.0.0
-mypy>=1.5.0
-pylint>=2.17.0
+black==24.10.0
+isort==5.13.2
+flake8==7.1.1
+ruff==0.8.4
+mypy==1.14.0
+pylint==3.3.2
+
+# Security scanning
+semgrep==1.100.0
 
 # Coverage
-coverage[toml]>=7.2.0
+coverage[toml]==7.6.9
 
 # Documentation
-sphinx>=6.0.0
-sphinx-rtd-theme>=1.3.0
+sphinx==8.1.3
+sphinx-rtd-theme==3.0.2
 
 # Development utilities
-ipython>=8.14.0
-ipdb>=0.13.0
+ipython==8.30.0
+ipdb==0.13.13
 
 # Type stubs
-types-aiofiles>=23.0.0
-types-beautifulsoup4>=4.12.0
+types-aiofiles==24.1.0.20241221
+types-beautifulsoup4==4.12.0.20241229
+types-requests==2.32.0.20241229
 
 # Include main requirements
 -r requirements.txt

@@ -1,0 +1,63 @@
+rules:
+  - id: dangerous-shell-exec
+    pattern-either:
+      - pattern: os.system(...)
+      - pattern: subprocess.call($CMD, shell=True, ...)
+      - pattern: subprocess.run($CMD, shell=True, ...)
+      - pattern: subprocess.Popen($CMD, shell=True, ...)
+    message: "Dangerous shell execution detected. Use shell=False or validate input thoroughly."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-78: OS Command Injection"
+
+  - id: hardcoded-secret
+    pattern-either:
+      - pattern: |
+          $PASSWORD = "..."
+      - pattern: |
+          $API_KEY = "..."
+      - pattern: |
+          $SECRET = "..."
+      - pattern: |
+          $TOKEN = "..."
+    message: "Potential hardcoded secret detected"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-798: Hard-coded Credentials"
+
+  - id: dangerous-chmod
+    pattern-either:
+      - pattern: os.chmod($PATH, 0o777)
+      - pattern: os.chmod($PATH, 0o666)
+      - pattern: subprocess.run(["chmod", "-R", "777", ...], ...)
+      - pattern: subprocess.run(["chmod", "777", ...], ...)
+    message: "Overly permissive file permissions detected (777/666)"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-732: Incorrect Permission Assignment"
+
+  - id: eval-use
+    pattern: eval(...)
+    message: "Use of eval() detected - potential code injection risk"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-95: Eval Injection"
+
+  - id: sql-injection-risk
+    pattern-either:
+      - pattern: cursor.execute(f"... {$VAR} ...")
+      - pattern: cursor.execute("..." + $VAR + "...")
+    message: "Potential SQL injection - use parameterized queries"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"

@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    make \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy dependency files first (better caching)
+COPY requirements.txt requirements-dev.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-dev.txt
+
+# Copy the rest of the codebase
+COPY . .
+
+# Set environment variables
+ENV PYTHONPATH=/workspace
+ENV PYTHONUNBUFFERED=1
+
+# Default command
+CMD ["bash"]
