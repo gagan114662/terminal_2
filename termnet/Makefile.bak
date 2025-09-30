@@ -1,0 +1,87 @@
+.PHONY: help install test coverage lint format clean run qa verify ci-verify pre-commit-install trend-analysis sbom
+
+help:
+	@echo "Available commands:"
+	@echo "  make install    - Install dependencies"
+	@echo "  make test       - Run all tests"
+	@echo "  make coverage   - Run tests with coverage report"
+	@echo "  make lint       - Run linters (flake8, pylint, mypy)"
+	@echo "  make format     - Format code with black and isort"
+	@echo "  make clean      - Remove build artifacts and cache"
+	@echo "  make run        - Run TermNet"
+	@echo "  make qa         - Run full QA suite (format, lint, test, coverage)"
+	@echo "  make verify     - Run TermNet quality gates"
+	@echo "  make ci-verify  - Run CI verification with artifacts"
+	@echo "  make pre-commit-install - Install pre-commit hooks"
+	@echo "  make trend-analysis     - Add metrics to trend history"
+	@echo "  make sbom              - Generate Software Bill of Materials"
+
+install:
+	pip install -r requirements.txt
+	pip install -r requirements-dev.txt
+	playwright install chromium
+
+test:
+	pytest tests/ -v
+
+test-unit:
+	pytest tests/ -v -m "not integration"
+
+test-integration:
+	pytest tests/ -v -m integration
+
+coverage:
+	pytest tests/ --cov=termnet --cov-report=term-missing --cov-report=html
+	@echo "Coverage report generated in htmlcov/index.html"
+
+lint:
+	flake8 termnet/ tests/ --max-line-length=100 --ignore=E203,W503
+	pylint termnet/ tests/ --disable=C0111,R0903,R0913,W0613
+	mypy termnet/ --ignore-missing-imports
+
+format:
+	black termnet/ tests/
+	isort termnet/ tests/
+
+clean:
+	find . -type f -name "*.pyc" -delete
+	find . -type d -name "__pycache__" -delete
+	find . -type d -name "*.egg-info" -exec rm -rf {} +
+	rm -rf .pytest_cache/
+	rm -rf .coverage
+	rm -rf htmlcov/
+	rm -rf coverage.xml
+	rm -rf .mypy_cache/
+
+run:
+	python -m termnet.main
+
+qa: format lint test coverage
+	@echo "✅ QA Suite Complete!"
+
+verify:
+	@python3 scripts/verify_quality_gates_mock.py
+	@echo "Recording claim receipt..."
+	@bash -lc 'test -x scripts/record_claim.sh && ./scripts/record_claim.sh "agentic_rag_e2e_gate" "validator" "artifacts/rag_reason.json,artifacts/rag_processor.json,artifacts/code_analyze.json,artifacts/orchestrator_plan.json,artifacts/verify_summary.json" "OK" || true'
+
+ci-verify: verify
+	@test -f artifacts/verify_summary.json && echo "✅ Artifacts generated" || exit 1
+	@echo "CI verification complete"
+
+pre-commit-install:
+	pip install pre-commit
+	pre-commit install
+	@echo "✅ Pre-commit hooks installed"
+
+trend-analysis:
+	@python3 scripts/trend_analysis.py
+sbom:
+	@echo "Generating Software Bill of Materials..."
+	@mkdir -p artifacts
+	@echo "Generating Python dependency list..."
+	@pip freeze > artifacts/requirements-freeze.txt
+	@echo "Generating SBOM with syft (if available)..."
+	@command -v syft >/dev/null 2>&1 && syft . -o json --file artifacts/sbom.json || echo "syft not found - install with: brew install syft"
+	@echo "Generating vulnerability scan with grype (if available)..."
+	@command -v grype >/dev/null 2>&1 && grype . -o json --file artifacts/vulnerabilities.json || echo "grype not found - install with: brew install grype"
+	@echo "✅ SBOM artifacts saved to artifacts/"

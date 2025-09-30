@@ -7,8 +7,14 @@
 git checkout main && git pull
 git checkout -b feature/your-feature-name
 # Make changes
-pytest -q tests/test_safety.py tests/test_toolloader.py  # Core contract tests
-python verify_all_fixes.py  # Full verification
+
+# Development workflow
+pre-commit run --all-files  # Run twice - first may format, second should exit 0
+pre-commit run --all-files
+make verify                 # Generate artifacts/verify_summary.json
+pytest -q                   # All tests should pass
+
+# Commit and push
 git add . && git commit -m "feat: your change description"
 git push -u origin feature/your-feature-name
 # Create PR via GitHub

@@ -1,0 +1,34 @@
+# Optimized GPT-OSS Modelfile for Intel GPU
+FROM gpt-oss:20b
+
+# GPU and Memory Optimizations
+PARAMETER num_ctx 2048
+PARAMETER num_batch 1
+PARAMETER num_gqa 1
+PARAMETER num_gpu 999
+PARAMETER num_thread 4
+
+# Performance tuning for Intel GPU
+PARAMETER temperature 0.7
+PARAMETER top_k 40
+PARAMETER top_p 0.9
+PARAMETER repeat_last_n 64
+PARAMETER repeat_penalty 1.1
+
+# Memory management
+PARAMETER mmap true
+PARAMETER mlock false
+PARAMETER numa false
+
+TEMPLATE """<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.
+Knowledge cutoff: 2024-06
+Current date: {{ currentDate }}
+<|end|>
+{{- range .Messages }}
+  {{- if eq .Role "user" }}
+<|start|>{{ .Role }}<|message|>{{ .Content }}<|end|>
+  {{- else if eq .Role "assistant" }}
+<|start|>assistant<|message|>{{ .Content }}<|end|>
+  {{- end }}
+{{- end }}
+<|start|>assistant<|message|>"""

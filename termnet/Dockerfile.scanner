@@ -1,0 +1,98 @@
+# Security Scanner Container
+FROM python:3.11-slim
+
+# Install security scanning tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    jq \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker CLI (for scanning images)
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    chmod a+r /etc/apt/keyrings/docker.gpg && \
+    echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && apt-get install -y docker-ce-cli && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Syft for SBOM generation
+RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+# Install Grype for vulnerability scanning
+RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+# Install Trivy for comprehensive scanning
+RUN wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add - && \
+    echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | tee -a /etc/apt/sources.list.d/trivy.list && \
+    apt-get update && apt-get install -y trivy && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -u 1000 scanner && \
+    mkdir -p /app/data /app/reports && \
+    chown -R scanner:scanner /app
+
+WORKDIR /app
+
+# Copy security scanning scripts
+COPY --chown=scanner:scanner security/ /app/security/
+COPY --chown=scanner:scanner termnet/ /app/termnet/
+
+# Install Python dependencies
+COPY --chown=scanner:scanner requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Switch to non-root user
+USER scanner
+
+# Scanner script
+COPY --chown=scanner:scanner <<'EOF' /app/scan_runner.py
+#!/usr/bin/env python3
+import os
+import time
+import sys
+sys.path.insert(0, '/app')
+
+from security.sbom_scanner import ContainerSecurityScanner
+from termnet.security_validation import SecurityValidationEngine
+
+def run_continuous_scanning():
+    scanner = ContainerSecurityScanner(db_path="/app/data/termnet_security.db")
+    validator = SecurityValidationEngine()
+
+    scan_interval = int(os.getenv("SCAN_INTERVAL", 3600))
+
+    while True:
+        try:
+            print(f"🔍 Starting security scan cycle...")
+
+            # List all local images (you can customize this)
+            images = ["termnet-api:latest"]
+
+            for image in images:
+                print(f"📦 Scanning {image}")
+                report = scanner.scan_container(image)
+                receipt = validator.integrate_with_termnet(report)
+                print(f"✅ Scan completed for {image}")
+
+            print(f"💤 Sleeping for {scan_interval} seconds...")
+            time.sleep(scan_interval)
+
+        except Exception as e:
+            print(f"❌ Error during scanning: {e}")
+            time.sleep(60)  # Wait a minute before retrying
+
+if __name__ == "__main__":
+    run_continuous_scanning()
+EOF
+
+RUN chmod +x /app/scan_runner.py
+
+CMD ["python", "/app/scan_runner.py"]

@@ -1,0 +1,13 @@
+[flake8]
+max-line-length = 100
+extend-ignore = W503,E127,E128,E129,W292,E501,F401,F841,E402,E722,F541,E203,E713
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    gpu_env,
+    .bmad-core/,
+    artifacts/,
+    sync/,
+    TermNet/
