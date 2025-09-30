@@ -54,7 +54,7 @@ def test_error_rate_slo():
     if data:
         successes = sum(1 for m in data if m.get("success", False))
         success_rate = successes / len(data)
-        assert success_rate >= 0.85, f"Success rate {success_rate:.2%} below 85% SLO (temporarily lowered)"
+        assert success_rate >= 0.95, f"Success rate {success_rate:.2%} below 95% SLO"
 
 
 def test_response_time_budget():
