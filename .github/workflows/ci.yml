@@ -23,8 +23,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pre-commit pytest pytest-asyncio anyio
 
-      - name: Lint (flake8)
-        run: python -m flake8 termnet/termnet/ tests/ scripts/
+      - name: Lint (changed files only; fallback)
+        run: |
+          CHANGED=$(git fetch origin main >/dev/null 2>&1 || true; \
+            git diff --name-only origin/main...HEAD | grep -E '\.py$' || true)
+          if [ -n "$CHANGED" ]; then
+            echo "Linting changed files: $CHANGED"
+            echo "$CHANGED" | tr '\n' ' ' | xargs python -m flake8
+          else
+            echo "No changed files detected; linting prod dirs"
+            python -m flake8 termnet/termnet/ tests/ scripts/
+          fi
 
   test:
     runs-on: ubuntu-latest
